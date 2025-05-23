@@ -47,28 +47,70 @@
 #include <vtkMRMLVolumeRenderingDisplayNode.h>
 #include <vtkMRMLVolumeRenderingDisplayableManager.h>
 #include <vtkSmartPointer.h>
+#include <vtkRendererCollection.h>
+
+#include <qSlicerApplication.h>
+#include <qMRMLLayoutManager.h>
+#include <qMRMLThreeDWidget.h>
+#include <qMRMLThreeDView.h>
+
+#include <vtkMRMLScene.h>
+#include <vtkMRMLVolumeNode.h>
+#include <vtkMRMLVolumeRenderingDisplayNode.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkVolumeCollection.h>
+#include <vtkVolume.h>
+#include <vtkVolumeMapper.h>
+#include <vtkOpenGLGPUVolumeRayCastMapper.h>
+#include <vtkOpenGLTexture.h>
+#include <vtkImageData.h>
+#include <vtkVolumeInputHelper.h>
+#include <vtkVolumeTexture.h>
+#include <vtkTextureObject.h>
 
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerVolumeTextureIDHelperLogic);
 
+int GetVolumeGLTexture(vtkOpenGLGPUVolumeRayCastMapper* mapper, int portIndex)
+{
+    auto it = mapper->AssembledInputs.find(portIndex);
+    if (it == mapper->AssembledInputs.end())
+    {
+        std::cerr << "portIndex not found." << std::endl;
+        return -1;
+    }
+    vtkVolumeInputHelper& helper = it->second;            // helper.Texture is vtkVolumeTexture :contentReference[oaicite:3]{index=3}
+    vtkVolumeTexture* volTex = helper.Texture;            // the wrapper around the GL texture :contentReference[oaicite:4]{index=4}
+    auto* block = volTex->GetCurrentBlock();              // brick-based streaming
+    if (!block)
+        block = volTex->GetNextBlock();
+    vtkTextureObject* texObj = block->TextureObject;      // raw GL texture object :contentReference[oaicite:5]{index=5}
+    return texObj->GetHandle();                           // GLuint name :contentReference[oaicite:6]{index=6}
+}
+
 int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int viewIndex)
 {
     if (!volumeNode || !volumeNode->GetScene())
-        return 0;
+    {
+        std::cerr << "volumeNode is empty." << std::endl;
+        return -1;
+    }
 
-    vtkMRMLScene* scene = volumeNode->GetScene();
+    //vtkMRMLScene* scene = volumeNode->GetScene();
 
-    // Get all view nodes
-    std::vector<vtkMRMLNode*> viewNodes;
-    scene->GetNodesByClass("vtkMRMLViewNode", viewNodes);
+    //// Get all view nodes
+    //std::vector<vtkMRMLNode*> viewNodes;
+    //scene->GetNodesByClass("vtkMRMLViewNode", viewNodes);
 
-    if (viewIndex < 0 || viewIndex >= static_cast<int>(viewNodes.size()))
-        return 0;
+    //if (viewIndex < 0 || viewIndex >= static_cast<int>(viewNodes.size()))
+    //    return 0;
 
-    vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(viewNodes[viewIndex]);
-    if (!viewNode)
-        return 0;
+    //vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(viewNodes[viewIndex]);
+    //if (!viewNode)
+    //    return 0;
 
     //// Get display node
     //vtkMRMLVolumeRenderingDisplayNode* displayNode = volumeNode->GetVolume GetVolumeRenderingDisplayNode();
@@ -97,6 +139,107 @@ int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode
     //// Access OpenGL 3D texture
     //GLuint texId = glMapper->GetTextureId();
     //return texId;
+
+    QList<qMRMLThreeDView*> viewList;
+
+    // Get the layout manager from the Slicer application
+    qMRMLLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+    if (!layoutManager)
+    {
+        std::cerr << "Layout manager is not available." << std::endl;
+        return -1;
+    }
+
+    int viewCount3d = layoutManager->threeDViewCount();
+    if (viewIndex < 0)
+    {
+        std::cerr << "viewIndex provided is negative." << std::endl;
+        return -1;
+    }
+    else if (viewIndex >= viewCount3d)
+    {
+        std::cerr << "viewIndex is higher than the number of 3D views." << std::endl;
+        return -1;
+    }
+
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(viewIndex);
+    if (!widget)
+    {
+        std::cerr << "  Failed to get threeDWidget." << std::endl;
+        return -1;
+    }
+
+    qMRMLThreeDView* view = widget->threeDView();
+    if (!view)
+    {
+        std::cerr << "  Failed to get threeDView." << std::endl;
+        return -1;
+    }
+    
+    vtkRenderWindow* renderWindow = view->renderWindow();
+    vtkRendererCollection* renderers = renderWindow->GetRenderers();
+    vtkRenderer* renderer = renderers->GetFirstRenderer();
+    if (!renderer)
+    {
+        std::cerr << "  No renderer found." << std::endl;
+        return -1;
+    }
+
+
+    ////// Good so far
+
+    vtkVolumeCollection* volumes = renderer->GetVolumes();
+    volumes->InitTraversal();
+
+    for (int i = 0; i < volumes->GetNumberOfItems(); ++i)
+    {
+        vtkVolume* actor = volumes->GetNextVolume();
+        if (!actor || actor->GetMapper() == nullptr)
+            continue;
+
+        vtkAbstractVolumeMapper* abstractMapper = actor->GetMapper();
+        vtkVolumeMapper* mapper = vtkVolumeMapper::SafeDownCast(abstractMapper);
+        if (!mapper)
+            continue;
+
+
+        if (vtkOpenGLGPUVolumeRayCastMapper* glMapper =
+            vtkOpenGLGPUVolumeRayCastMapper::SafeDownCast(mapper))
+        {
+            vtkDataSet* data = glMapper->GetInput();
+            vtkImageData* input = vtkImageData::SafeDownCast(data);
+            if (!input || volumeNode->GetImageData() != input)
+                continue;
+
+            // Ensure OpenGL context is current
+            renderWindow->MakeCurrent();
+
+            //// Access internal texture object
+            //vtkTextureObject* textureManager = glMapper->GetColorTexture();
+            //if (!textureManager)
+            //{
+            //    std::cerr << "No volume texture found." << std::endl;
+            //    continue;
+            //}
+
+            return GetVolumeGLTexture(glMapper, 0);
+
+            /*textureManager->
+
+            vtkOpenGLTexture* texture = textureManager->GetTextureObject();
+            if (texture)
+            {
+                GLuint texID = texture->GetHandle();
+                std::cout << "Found texture ID: " << texID << std::endl;
+                return texID;
+            }*/
+        }
+
+        return -1;
+    }
+
+    std::cerr << "No matching GPU volume mapper found for the specified volume node." << std::endl;
+    return 0;
 
     return (int) & volumeNode;
 }
