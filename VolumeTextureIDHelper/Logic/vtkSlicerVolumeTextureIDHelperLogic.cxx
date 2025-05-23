@@ -74,7 +74,7 @@
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerVolumeTextureIDHelperLogic);
 
-int GetVolumeGLTexture(vtkOpenGLGPUVolumeRayCastMapper* mapper, int portIndex)
+int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForMapper(vtkOpenGLGPUVolumeRayCastMapper* mapper, int portIndex)
 {
     auto it = mapper->AssembledInputs.find(portIndex);
     if (it == mapper->AssembledInputs.end())
@@ -82,16 +82,21 @@ int GetVolumeGLTexture(vtkOpenGLGPUVolumeRayCastMapper* mapper, int portIndex)
         std::cerr << "portIndex not found." << std::endl;
         return -1;
     }
-    vtkVolumeInputHelper& helper = it->second;            // helper.Texture is vtkVolumeTexture :contentReference[oaicite:3]{index=3}
-    vtkVolumeTexture* volTex = helper.Texture;            // the wrapper around the GL texture :contentReference[oaicite:4]{index=4}
-    auto* block = volTex->GetCurrentBlock();              // brick-based streaming
+    vtkVolumeInputHelper& helper = it->second;
+    vtkVolumeTexture* volTex = helper.Texture;
+    auto* block = volTex->GetCurrentBlock();
     if (!block)
         block = volTex->GetNextBlock();
-    vtkTextureObject* texObj = block->TextureObject;      // raw GL texture object :contentReference[oaicite:5]{index=5}
-    return texObj->GetHandle();                           // GLuint name :contentReference[oaicite:6]{index=6}
+    vtkTextureObject* texObj = block->TextureObject;
+    return texObj->GetHandle();
 }
 
-int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int viewIndex)
+int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int threeDViewIndex)
+{
+    return GetTextureIdForVolume(volumeNode, threeDViewIndex, 0);
+}
+
+int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int threeDViewIndex, int portIndex)
 {
     if (!volumeNode || !volumeNode->GetScene())
     {
@@ -151,18 +156,18 @@ int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode
     }
 
     int viewCount3d = layoutManager->threeDViewCount();
-    if (viewIndex < 0)
+    if (threeDViewIndex < 0)
     {
         std::cerr << "viewIndex provided is negative." << std::endl;
         return -1;
     }
-    else if (viewIndex >= viewCount3d)
+    else if (threeDViewIndex >= viewCount3d)
     {
         std::cerr << "viewIndex is higher than the number of 3D views." << std::endl;
         return -1;
     }
 
-    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(viewIndex);
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(threeDViewIndex);
     if (!widget)
     {
         std::cerr << "  Failed to get threeDWidget." << std::endl;
@@ -222,7 +227,7 @@ int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode
             //    continue;
             //}
 
-            return GetVolumeGLTexture(glMapper, 0);
+            return GetTextureIdForMapper(glMapper, 0);
 
             /*textureManager->
 
@@ -238,10 +243,8 @@ int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode
         return -1;
     }
 
-    std::cerr << "No matching GPU volume mapper found for the specified volume node." << std::endl;
-    return 0;
-
-    return (int) & volumeNode;
+    std::cerr << "No matching GPU volume mapper found for the specified volume node and 3D view." << std::endl;
+    return -1;
 }
 
 //----------------------------------------------------------------------------

@@ -53,7 +53,9 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Gets the OpenGL texture ID used by the mapper in a specific view index
-  int GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int viewIndex);
+  int GetTextureIdForMapper(vtkOpenGLGPUVolumeRayCastMapper* mapper, int portIndex);
+  int GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int threeDViewIndex);
+  int GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int threeDViewIndex, int portIndex);
 
 protected:
   vtkSlicerVolumeTextureIDHelperLogic();
@@ -68,7 +70,7 @@ protected:
 private:
 
   vtkSlicerVolumeTextureIDHelperLogic(const vtkSlicerVolumeTextureIDHelperLogic&); // Not implemented
-  void operator=(const vtkSlicerVolumeTextureIDHelperLogic&); // Not implemented
+  void operator=(const vtkSlicerVolumeTextureIDHelperLogic&); // Not implemented  
 };
 
 #endif
