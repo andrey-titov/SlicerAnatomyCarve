@@ -19,6 +19,7 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(AnatomyCarve)
+add_subdirectory(VolumeTextureIDHelper)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
