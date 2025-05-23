@@ -34,6 +34,14 @@
 
 #include "vtkSlicerVolumeTextureIDHelperModuleLogicExport.h"
 
+// Specific
+#include <vtkObject.h>
+#include <vtkSmartPointer.h>
+#include <vtkMRMLVolumeNode.h>
+#include <vtkOpenGLGPUVolumeRayCastMapper.h>
+
+#include <vtkSlicerVolumeRenderingLogic.h>
+
 
 class VTK_SLICER_VOLUMETEXTUREIDHELPER_MODULE_LOGIC_EXPORT vtkSlicerVolumeTextureIDHelperLogic :
   public vtkSlicerModuleLogic
@@ -43,6 +51,9 @@ public:
   static vtkSlicerVolumeTextureIDHelperLogic *New();
   vtkTypeMacro(vtkSlicerVolumeTextureIDHelperLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  /// Gets the OpenGL texture ID used by the mapper in a specific view index
+  int GetTextureIdForVolume(vtkMRMLVolumeNode* volumeNode, int viewIndex);
 
 protected:
   vtkSlicerVolumeTextureIDHelperLogic();
