@@ -4,6 +4,8 @@ set(MODULE_NAME AnatomyCarve)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  AnatomyCarveLogic/__init__.py
+  AnatomyCarveLogic/AnatomyCarveLogic.py
   )
 
 set(MODULE_PYTHON_RESOURCES
