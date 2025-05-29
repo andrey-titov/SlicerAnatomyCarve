@@ -6,6 +6,7 @@ set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
   AnatomyCarveLogic/__init__.py
   AnatomyCarveLogic/AnatomyCarveLogic.py
+  AnatomyCarveLogic/ComputeShader.py
   )
 
 set(MODULE_PYTHON_RESOURCES

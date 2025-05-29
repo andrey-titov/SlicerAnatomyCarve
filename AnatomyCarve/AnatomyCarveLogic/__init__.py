@@ -1,2 +1,3 @@
 from AnatomyCarveLogic.AnatomyCarveLogic import AnatomyCarveLogic
 from AnatomyCarveLogic.AnatomyCarveLogic import AnatomyCarveParameterNode
+from AnatomyCarveLogic.ComputeShader import ComputeShader

@@ -15,6 +15,7 @@ from slicer.parameterNodeWrapper import (
 )
 
 from slicer import vtkMRMLScalarVolumeNode
+from slicer import vtkMRMLSegmentationNode
 
 
 class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
@@ -89,6 +90,8 @@ class AnatomyCarveParameterNode:
     invertedVolume - The output volume that will contain the inverted thresholded volume.
     """
 
+    intensityVolume: vtkMRMLScalarVolumeNode
+    segmentation: vtkMRMLSegmentationNode
     inputVolume: vtkMRMLScalarVolumeNode
     imageThreshold: Annotated[float, WithinRange(-100, 500)] = 100
     invertThreshold: bool = False
