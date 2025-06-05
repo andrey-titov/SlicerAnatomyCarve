@@ -244,11 +244,11 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                                    self.ui.imageThresholdSliderWidget.value, not self.ui.invertOutputCheckBox.checked, showResult=False)
                 
     def _checkCanRender(self, caller=None, event=None) -> None:
-        if self._parameterNode and self._parameterNode.intensityVolume and self._parameterNode.segmentation:
+        if self._parameterNode and self._parameterNode.intensityVolume and self._parameterNode.segmentation and self._parameterNode.view:
             self.ui.renderButton.toolTip = _("Start AnatomyCarve rendering")
             self.ui.renderButton.enabled = True
         else:
-            self.ui.renderButton.toolTip = _("Select intesnsity volume and segmentation nodes")
+            self.ui.renderButton.toolTip = _("Select intesnsity volume, segmentation and view nodes")
             self.ui.renderButton.enabled = False
 
     def onRenderButton(self) -> None:

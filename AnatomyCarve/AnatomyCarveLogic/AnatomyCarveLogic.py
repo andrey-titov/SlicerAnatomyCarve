@@ -14,8 +14,7 @@ from slicer.parameterNodeWrapper import (
     WithinRange,
 )
 
-from slicer import vtkMRMLScalarVolumeNode
-from slicer import vtkMRMLSegmentationNode
+from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLViewNode
 
 
 class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
@@ -92,6 +91,7 @@ class AnatomyCarveParameterNode:
 
     intensityVolume: vtkMRMLScalarVolumeNode
     segmentation: vtkMRMLSegmentationNode
+    view: vtkMRMLViewNode
     inputVolume: vtkMRMLScalarVolumeNode
     imageThreshold: Annotated[float, WithinRange(-100, 500)] = 100
     invertThreshold: bool = False
