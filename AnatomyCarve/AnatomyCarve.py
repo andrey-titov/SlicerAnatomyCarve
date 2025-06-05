@@ -16,8 +16,15 @@ from slicer.parameterNodeWrapper import (
 
 from slicer import vtkMRMLScalarVolumeNode
 
+try:
+    import OpenGL.GL
+except ImportError:
+    slicer.util.pip_install('PyOpenGL')
+
 
 from AnatomyCarveLogic import *
+
+
 
 #
 # AnatomyCarve
@@ -253,7 +260,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onRenderButton(self) -> None:
         """Run processing when user clicks "Apply" button."""
-        print("onRenderButton called")
+        self.logic.startRender()
 
 
 

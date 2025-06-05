@@ -14,6 +14,8 @@ from slicer.parameterNodeWrapper import (
     WithinRange,
 )
 
+from AnatomyCarveLogic.ComputeShader import ComputeShader
+
 from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLViewNode
 
 
@@ -71,6 +73,10 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
         stopTime = time.time()
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
+        
+    def startRender(self) -> None:
+        node: AnatomyCarveParameterNode = self.getParameterNode()        
+        shader = ComputeShader("Test.comp")
 
 #
 # AnatomyCarveParameterNode
