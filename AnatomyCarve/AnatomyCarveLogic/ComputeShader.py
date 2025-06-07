@@ -31,7 +31,7 @@ class ComputeShader:
             for line in f:
                 shaderCode += line
                 
-        print(self.createComputeShader(shaderCode))
+        #print(self.createComputeShader(shaderCode))
                 
     def createComputeShader(self, src):
         shader = glCreateShader(GL_COMPUTE_SHADER)

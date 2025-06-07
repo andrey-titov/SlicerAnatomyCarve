@@ -3,6 +3,7 @@ import os
 from typing import Annotated, Optional
 
 import vtk
+import numpy as np
 
 import slicer
 from slicer.i18n import tr as _
@@ -74,9 +75,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         stopTime = time.time()
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
         
-    def startRender(self) -> None:
-        node: AnatomyCarveParameterNode = self.getParameterNode()        
-        shader = ComputeShader("Test.comp")
+    
 
 #
 # AnatomyCarveParameterNode

@@ -17,13 +17,14 @@ from slicer.parameterNodeWrapper import (
 from slicer import vtkMRMLScalarVolumeNode
 
 try:
-    import OpenGL.GL
+    from OpenGL.GL import *
 except ImportError:
     slicer.util.pip_install('PyOpenGL')
 
 
 from AnatomyCarveLogic import *
-
+import numpy as np
+from AnatomyCarveLogic.Texture import *
 
 
 #
@@ -260,9 +261,54 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onRenderButton(self) -> None:
         """Run processing when user clicks "Apply" button."""
-        self.logic.startRender()
+        #self.logic.startRender() TODO: put into logic class
+        self.startRender()
 
+    def startRender(self) -> None:
+        node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
+        shader = ComputeShader("Test.comp")
+        labelToColor2D = self.getSegmentLabelToColorMap()
 
+    def getSegmentLabelToColorMap(self) -> Texture2D:
+        segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
+        segmentation = segNode.GetSegmentation()
+        displayNode = segNode.GetDisplayNode()
+
+        # 2. Get the list of segment IDs
+        segmentIDs = segmentation.GetSegmentIDs()                 # vtkSegmentation::GetSegmentIDs :contentReference[oaicite:0]{index=0}
+
+        # 3. Build a mapping from label value → RGB color
+        labelColorMapping = {}
+        for segID in segmentIDs:
+            seg = segmentation.GetSegment(segID)
+            labelValue = seg.GetLabelValue()                      # vtkSegment::GetLabelValue :contentReference[oaicite:1]{index=1}
+
+            # get the actual display color (including any overrides)
+            r, g, b = displayNode.GetSegmentColor(segID)          # vtkMRMLSegmentationDisplayNode::GetSegmentColor :contentReference[oaicite:2]{index=2}
+
+            labelColorMapping[labelValue] = (r, g, b)
+
+        # 4. Compute the maximum label value
+        maxLabel = max(
+            segmentation.GetSegment(segID).GetLabelValue() # vtkSegment::GetLabelValue 
+            for segID in segmentIDs
+        )
+
+        NUM_COMPONENTS = 3
+
+        colorMap = np.zeros((maxLabel + 1) * NUM_COMPONENTS)
+
+        for label in labelColorMapping:
+            colorMap[label * NUM_COMPONENTS] = labelColorMapping[label][0]
+            colorMap[label * NUM_COMPONENTS + 1] = labelColorMapping[label][1]
+            colorMap[label * NUM_COMPONENTS + 2] = labelColorMapping[label][2]
+
+        print(colorMap.shape)
+
+        ## 4. Print it out
+        #print("Label → Color mapping:")
+        #for label, (r, g, b) in sorted(labelColorMapping.items()):
+        #print(f"  • Label {label:3d} → (R={r:.3f}, G={g:.3f}, B={b:.3f})")
 
 #
 # AnatomyCarveTest

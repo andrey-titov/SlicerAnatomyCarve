@@ -1,4 +1,4 @@
 from AnatomyCarveLogic.AnatomyCarveLogic import AnatomyCarveLogic
 from AnatomyCarveLogic.AnatomyCarveLogic import AnatomyCarveParameterNode
 from AnatomyCarveLogic.ComputeShader import ComputeShader
-from AnatomyCarveLogic.Texture import Texture3D
+from AnatomyCarveLogic.Texture import Texture2D, Texture3D
