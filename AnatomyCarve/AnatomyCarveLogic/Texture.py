@@ -34,18 +34,30 @@ class Texture:
     # Initialize from existing volume node
     def __init__(self, scalarVolumeNode: vtkMRMLScalarVolumeNode) -> None:
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
-        uploadData(self, data, GL_R32F)
+        self.uploadData(data, GL_R32F)
 
     # Initialize from new data
     def __init__(self, data: np.ndarray, format: int):
-        uploadData(self, data, format)    
+        self.uploadData(data, format)    
 
     def uploadData(self, data: np.ndarray, format: int):
-        self.dims = array.shape[::-1]
+        
         self.textureId = glGenTextures(1)
         self.format = format
-        glBindTexture(GL_TEXTURE_3D, self.textureId)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexStorage3D(GL_TEXTURE_3D, 1, self.format, *dims)
-        glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, *dims, GL_RED, GL_FLOAT, array.ravel())
+
+        if len(data.shape) == 2:
+            self.dims = data.shape
+            glBindTexture(GL_TEXTURE_2D, self.textureId)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexStorage2D(GL_TEXTURE_2D, 1, self.format, *self.dims)
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, *self.dims, GL_RGB, GL_FLOAT, data.ravel())
+        elif len(data.shape) == 3:
+            self.dims = data.shape[::-1]
+            glBindTexture(GL_TEXTURE_3D, self.textureId)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexStorage3D(GL_TEXTURE_3D, 1, self.format, *self.dims)
+            glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, *self.dims, GL_RED, GL_FLOAT, data.ravel())
+        else:
+            logging.error(f"Arrays of dimension {len(data.shape)} are not supported")
