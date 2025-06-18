@@ -305,7 +305,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         print(colorMap.shape)
 
-        colorMapTex = Texture(colorMap, GL_RGB8)
+        return Texture(colorMap, GL_RGB8)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
