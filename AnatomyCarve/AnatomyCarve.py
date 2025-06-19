@@ -25,6 +25,9 @@ except ImportError:
 from AnatomyCarveLogic import *
 import numpy as np
 from AnatomyCarveLogic.Texture import *
+import vtkSegmentationCorePython as vtkSegmentationCore
+from vtk.util import numpy_support
+
 
 
 #
@@ -268,7 +271,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
         shader = ComputeShader("Test.comp")
         labelToColor2D = self.getSegmentLabelToColorMap()
-        self.createVectorVolume()
+        volumeColor = self.createVectorVolume()
+        labelMap = self.createLabelTexture()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -310,7 +314,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         
 
-        return Texture.fromArray(colorMap, GL_RGB8)
+        return Texture.fromArray(colorMap, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
@@ -410,9 +414,49 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
         #print(textureId)
-        return Texture.fromOpenGLTexture(textureId, reversed(originalVolume.GetImageData().GetDimensions()), GL_RGBA32F)
+        return Texture.fromOpenGLTexture(textureId, reversed(originalVolume.GetImageData().GetDimensions()), GL_RGBA32F, GL_RGB, GL_FLOAT)
+        
+    def createLabelTexture(self) -> Texture:
+        # # 1. Get your segmentation node (by name, or just grab the first one)
+        # segNode = self.logic.getParameterNode().segmentation  # replace with your node’s actual name
+        # # segNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLSegmentationNode')
+        # segNode.SetReferenceImageGeometryParameterFromVolumeNode(self.logic.getParameterNode().intensityVolume)
+
+        # # 2. Create a label‐map volume node to receive the export
+        # labelmapNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLabelMapVolumeNode', 'LabelMap_AnatomyCarve')
+
+        # # 3. Use the segmentation logic to export all segments into that label‐map
+        # segLogic = slicer.modules.segmentations.logic()
+        # segLogic.ExportAllSegmentsToLabelmapNode(segNode, labelmapNode)
+
+        # # 4. Now grab the raw array from the exported labelmap volume
+        # #    This is a 3D NumPy array of ints, where each voxel’s value is the segment index.
+        # array = slicer.util.arrayFromVolume(labelmapNode).astype(np.int16)
+        # print(array.shape, array.dtype)
         
         
+        
+        segNode = self.logic.getParameterNode().segmentation
+
+        # 1. Allocate the output
+        mergedLabelmap = vtkSegmentationCore.vtkOrientedImageData()
+
+        # 2. Generate it.  Use EXTENT_REFERENCE_GEOMETRY or another extent mode.
+        #    EXTENT_REFERENCE_GEOMETRY will use the segmentation’s saved reference image geometry.
+        success = segNode.GenerateMergedLabelmapForAllSegments(mergedLabelmap, slicer.vtkSegmentation.EXTENT_REFERENCE_GEOMETRY)
+        
+        if not success:
+            raise RuntimeError("Failed to generate merged labelmap")
+
+        # 3. Convert to NumPy
+       
+        vtkScalars = mergedLabelmap.GetPointData().GetScalars()
+        arr = numpy_support.vtk_to_numpy(vtkScalars)
+        dims = mergedLabelmap.GetDimensions()
+        arr = arr.reshape(dims[2], dims[1], dims[0])
+        print("Multi-label shape:", arr.shape)
+        
+        return Texture.fromArray(arr.astype(np.int16), GL_R16, GL_RED, GL_SHORT)
 
 #
 # AnatomyCarveTest

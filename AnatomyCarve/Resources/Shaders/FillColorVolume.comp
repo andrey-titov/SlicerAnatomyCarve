@@ -1,0 +1,34 @@
+#version 430
+
+// work‐group size; tune to your GPU and volume size
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+// binding 0: input label map (unsigned integer 3D image)
+layout(binding = 0, r32ui) readonly uniform uimage3D labelMap;
+
+// binding 1: colour map, stored as a 2D texture of size (colorMapSize × 1)
+layout(binding = 1) uniform sampler2D colorMap;
+
+// binding 2: output coloured volume (8-bit RGBA image)
+layout(binding = 2, rgba8) writeonly uniform image3D colorVolume;
+
+// how many entries in the colour map
+uniform int colorMapSize; 
+
+void main() {
+    // compute this invocation’s voxel coordinate
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
+    
+    // load the label (uvec4.x holds our label)
+    uint label = imageLoad(labelMap, coord).x;
+    
+    // map label → [0,1] lookup coordinate, with 0.5/sample-center offset
+    float u = (float(label) + 0.5) / float(colorMapSize);
+    vec2 uv = vec2(u, 0.5); 
+    
+    // fetch the colour
+    vec4 color = texture(colorMap, uv);
+    
+    // write to the output volume
+    imageStore(outputVolume, coord, color);
+}
