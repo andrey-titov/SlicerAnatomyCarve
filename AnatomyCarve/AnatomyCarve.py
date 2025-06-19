@@ -268,6 +268,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
         shader = ComputeShader("Test.comp")
         labelToColor2D = self.getSegmentLabelToColorMap()
+        self.createVectorVolume()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -311,6 +312,46 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #print("Label → Color mapping:")
         #for label, (r, g, b) in sorted(labelColorMapping.items()):
         #print(f"  • Label {label:3d} → (R={r:.3f}, G={g:.3f}, B={b:.3f})")
+        
+    def createVectorVolume(self) -> Texture:
+        originalVolume = self.logic.getParameterNode().intensityVolume
+        
+        dims = originalVolume.GetImageData().GetDimensions() 
+        
+        dims = dims[::-1]
+        
+        print(dims)
+        
+        newVolume = np.ones(dims + (4,), dtype=np.uint8)
+        
+        newVolume *= 255
+        newVolume[:,:,:,1] = 127
+        newVolume[:,:,:,2] = 60
+        
+        # Create new volume node
+        rgbaVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
+        slicer.util.updateVolumeFromArray(rgbaVolume, newVolume)
+
+        # Copy geometry (origin, spacing, matrix)
+        rgbaVolume.SetOrigin(originalVolume.GetOrigin())
+        rgbaVolume.SetSpacing(originalVolume.GetSpacing())
+        matrix = vtk.vtkMatrix4x4()
+        originalVolume.GetIJKToRASMatrix(matrix)
+        rgbaVolume.SetIJKToRASMatrix(matrix)
+
+        # Show in slice view
+        slicer.util.setSliceViewerLayers(background=rgbaVolume)
+
+        # Optional: enable volume rendering
+        volRenLogic = slicer.modules.volumerendering.logic()
+        displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(rgbaVolume)
+        #displayNode.GetVolumePropertyNode().GetVolumeProperty().SetIndependentComponents(0)
+        
+        volProp = displayNode.GetVolumePropertyNode().GetVolumeProperty()
+        volProp.SetIndependentComponents(0)
+        volProp.ShadeOff() 
+        
+        displayNode.SetVisibility(True)
 
 #
 # AnatomyCarveTest
