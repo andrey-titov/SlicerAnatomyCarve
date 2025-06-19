@@ -304,9 +304,13 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             colorMap[label, 1] = labelColorMapping[label][1]
             colorMap[label, 2] = labelColorMapping[label][2]
 
-        print(colorMap.shape)
+        #print(colorMap.shape)
+        
+        
 
-        return Texture(colorMap, GL_RGB8)
+        
+
+        return Texture.fromArray(colorMap, GL_RGB8)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
@@ -322,15 +326,21 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         print(dims)
         
-        newVolume = np.ones(dims + (4,), dtype=np.uint8)
+        arrayR = np.zeros(dims, dtype=np.float32)
+        arrayG = np.ones(dims, dtype=np.float32)
+        arrayB = np.ones(dims, dtype=np.float32)        
+        arrayA = slicer.util.arrayFromVolume(originalVolume).astype(np.float32) #np.ones(dims, dtype=np.uint8)
         
-        newVolume *= 255
-        newVolume[:,:,:,1] = 127
-        newVolume[:,:,:,2] = 60
+        arrayRGBA = np.stack((arrayR, arrayG, arrayB, arrayA), axis=-1)
+        
+        minAlpha, maxAlpha = int(arrayA.min()), int(arrayA.max())
+        print(f"Alpha range (NumPy): min={minAlpha}, max={maxAlpha}")
+        
+        print(arrayRGBA.shape)
         
         # Create new volume node
         rgbaVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
-        slicer.util.updateVolumeFromArray(rgbaVolume, newVolume)
+        slicer.util.updateVolumeFromArray(rgbaVolume, arrayRGBA)
 
         # Copy geometry (origin, spacing, matrix)
         rgbaVolume.SetOrigin(originalVolume.GetOrigin())
@@ -345,13 +355,64 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Optional: enable volume rendering
         volRenLogic = slicer.modules.volumerendering.logic()
         displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(rgbaVolume)
+        displayNode.SetVisibility(True)
         #displayNode.GetVolumePropertyNode().GetVolumeProperty().SetIndependentComponents(0)
         
-        volProp = displayNode.GetVolumePropertyNode().GetVolumeProperty()
-        volProp.SetIndependentComponents(0)
-        volProp.ShadeOff() 
+        vpNode = displayNode.GetVolumePropertyNode()
         
-        displayNode.SetVisibility(True)
+        vp = displayNode.GetVolumePropertyNode().GetVolumeProperty()
+
+        # 1. Direct RGB colors + raw alpha
+        vp.SetIndependentComponents(0)
+
+        # 2. Identity scalar-opacity TF on component 3 → α
+        so = vp.GetScalarOpacity()
+        so.RemoveAllPoints()
+        so.AddPoint(  minAlpha, 0.0 )  # α=0 → transparent
+        so.AddPoint(maxAlpha, 1.0 )  # α=255 → opaque
+
+        # 3. Disable gradient-based opacity
+        go = vp.GetGradientOpacity()
+        go.RemoveAllPoints()
+        go.AddPoint( minAlpha, 0.0 )
+        go.AddPoint(maxAlpha, 1.0 )
+
+        # 4. (Optional) Turn off lighting so you don’t get any shading dimming
+        #vp.ShadeOff()
+
+        # Refresh the VR display
+        displayNode.GetVolumePropertyNode().Modified()
+        
+        
+        #vp = vpNode.GetVolumeProperty()               # vtkVolumeProperty
+        #vp.ShadeOff()                                 # equivalent to SetShade(0)
+        #vpNode.Modified()                             # notify the MRML node of the change
+        
+        # assume viewNode is your vtkMRMLViewNode
+        layoutManager = slicer.app.layoutManager()
+        nViews = layoutManager.threeDViewCount
+        viewNode = self.logic.getParameterNode().view
+        
+        viewIndex = None
+        for i in range(nViews):
+            # get the i-th 3D widget
+            threeDWidget = layoutManager.threeDWidget(i)
+            # get its view node
+            vn = threeDWidget.threeDView().mrmlViewNode()
+            if vn.GetID() == viewNode.GetID():
+                viewIndex = i
+                break
+
+        if viewIndex is not None:
+            print(f"ViewNode {viewNode.GetName()} has index {viewIndex}")
+        else:
+            print("ViewNode is not currently in any visible 3D view.")
+        
+        textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
+        #print(textureId)
+        return Texture.fromOpenGLTexture(textureId, reversed(originalVolume.GetImageData().GetDimensions()), GL_RGBA32F)
+        
+        
 
 #
 # AnatomyCarveTest

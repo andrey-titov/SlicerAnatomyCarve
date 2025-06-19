@@ -26,19 +26,28 @@ from slicer import vtkMRMLScalarVolumeNode
 
 class Texture:
     # Initialize from existing OpenGL texture
-    def __init__(self, textureId: int, dims: tuple[int], format: int) -> None:
-        self.textureId = textureId
-        self.dims = dims
-        self.format = format
+    @classmethod
+    def fromOpenGLTexture(cls, textureId: int, dims: tuple[int], format: int):
+        t = cls()
+        t.textureId = textureId
+        t.dims = dims
+        t.format = format
+        return t
 
     # Initialize from existing volume node
-    def __init__(self, scalarVolumeNode: vtkMRMLScalarVolumeNode) -> None:
+    @classmethod
+    def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode):
+        t = cls()
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
-        self.uploadData(data, GL_R32F)
+        t.uploadData(data, GL_R32F)
+        return t
 
     # Initialize from new data
-    def __init__(self, data: np.ndarray, format: int):
-        self.uploadData(data, format)    
+    @classmethod
+    def fromArray(cls, data: np.ndarray, format: int):
+        t = cls()
+        t.uploadData(data, format)
+        return t
 
     def uploadData(self, data: np.ndarray, format: int):
         
