@@ -14,6 +14,8 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/UI/${MODULE_NAME}.ui
   Resources/Shaders/Test.comp
+  Resources/Shaders/FillColorVolume.comp
+  Resources/Shaders/Noise.comp
   )
 
 #-----------------------------------------------------------------------------

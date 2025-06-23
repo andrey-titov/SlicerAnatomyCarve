@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from typing import Annotated, Optional
 
 import vtk
@@ -268,11 +269,11 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.startRender()
 
     def startRender(self) -> None:
-        node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
-        shader = ComputeShader("Test.comp")
-        labelToColor2D = self.getSegmentLabelToColorMap()
-        volumeColor = self.createVectorVolume()
-        labelMap = self.createLabelTexture()
+        self.node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
+        self.labelToColor2D = self.getSegmentLabelToColorMap()
+        self.volumeColor = self.createVectorVolume()
+        self.labelMap = self.createLabelTexture()
+        self.applyNoiseComputeShader()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -414,7 +415,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
         #print(textureId)
-        return Texture.fromOpenGLTexture(textureId, reversed(originalVolume.GetImageData().GetDimensions()), GL_RGBA32F, GL_RGB, GL_FLOAT)
+        return Texture.fromOpenGLTexture(textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
         
     def createLabelTexture(self) -> Texture:
         # # 1. Get your segmentation node (by name, or just grab the first one)
@@ -457,6 +458,55 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         print("Multi-label shape:", arr.shape)
         
         return Texture.fromArray(arr.astype(np.int16), GL_R16, GL_RED, GL_SHORT)
+    
+    def applyNoiseComputeShader(self):
+        self.shader = ComputeShader("Noise.comp")
+
+        # Get the render window from the 3D viewer
+        renderWindow = slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow()
+
+        self.frame = 0
+        self.frameCount = 0
+        self.lastTime = time.time()
+        
+        # Add observer for before-render event
+        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
+    
+    def applyNoiseComputeShaderTick(self, caller, event):
+        # print("self")
+        # print(self)
+
+        # print("caller")
+        # print(caller)
+
+        # print("event")
+        # print(event)
+        # global frame, frameCount, lastTime, textureID, shaderProg
+        # ensureGLContext()
+        # runShaderLoop(shaderProg, textureID, dims, scale=0.0025, frame=frame)
+        # #slicer.app.processEvents()
+        # slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow().Render()
+        # # Read back texture and update slicer volume
+        # #noisyArray = readBackTexture(texID, volShape)
+        # #updateVolumeNode(volumeNode, noisyArray)
+
+        shader = self.shader
+
+        glUseProgram(shader.program)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F)
+        glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
+        glUniform1ui(glGetUniformLocation(shader.program, "frame"), self.frame)
+        print(self.volumeColor.dims)
+        glDispatchCompute(self.volumeColor.dims[0]//8, self.volumeColor.dims[1]//8, self.volumeColor.dims[2]//8)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
+        self.frame += 1
+        self.frameCount += 1
+        now = time.time()
+        if now - self.lastTime >= 1.0:
+            print(f"FPS: {self.frameCount}")
+            frameCount = 0
+            lastTime = now
 
 #
 # AnatomyCarveTest

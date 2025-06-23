@@ -31,7 +31,7 @@ class ComputeShader:
             for line in f:
                 shaderCode += line
                 
-        #print(self.createComputeShader(shaderCode))
+        self.program = self.createComputeShader(shaderCode)
                 
     def createComputeShader(self, src):
         shader = glCreateShader(GL_COMPUTE_SHADER)
@@ -43,6 +43,3 @@ class ComputeShader:
         glAttachShader(prog, shader)
         glLinkProgram(prog)
         return prog
-    
-    def print(self):
-        pass
