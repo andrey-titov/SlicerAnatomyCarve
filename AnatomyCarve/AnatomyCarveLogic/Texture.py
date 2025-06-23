@@ -27,7 +27,7 @@ from slicer import vtkMRMLScalarVolumeNode
 class Texture:
     # Initialize from existing OpenGL texture
     @classmethod
-    def fromOpenGLTexture(cls, textureId: int, dims: tuple[int], internalformat: int, format: int, type: int):
+    def fromOpenGLTexture(cls, textureId: int, dims: tuple[int, int, int], internalformat: int, format: int, type: int):
         t = cls()
         t.textureId = textureId
         t.dims = dims

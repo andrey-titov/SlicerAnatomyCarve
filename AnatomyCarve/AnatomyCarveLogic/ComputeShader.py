@@ -5,6 +5,8 @@ from typing import Annotated, Optional
 
 import vtk
 
+import numpy as np
+
 import slicer
 from slicer.i18n import tr as _
 from slicer.i18n import translate
@@ -43,3 +45,23 @@ class ComputeShader:
         glAttachShader(prog, shader)
         glLinkProgram(prog)
         return prog
+    
+    def dispatch(self, threadSizeXYZ: tuple[int,int,int]):
+        # Assume `program` is your linked compute shader program (GLuint)
+        work_group_size = (GLint * 3)()
+        glGetProgramiv(self.program, GL_COMPUTE_WORK_GROUP_SIZE, work_group_size)
+
+        # print("Local work group size:")
+        # print(f"X: {work_group_size[0]}")
+        # print(f"Y: {work_group_size[1]}")
+        # print(f"Z: {work_group_size[2]}")
+
+        threadGroupsX = threadSizeXYZ[0] // work_group_size[0];
+        threadGroupsY = threadSizeXYZ[1] // work_group_size[1];
+        threadGroupsZ = threadSizeXYZ[2] // work_group_size[2];
+
+        threadGroupsX += 0 if threadSizeXYZ[0] % work_group_size[0] == 0 else 1
+        threadGroupsY += 0 if threadSizeXYZ[1] % work_group_size[1] == 0 else 1
+        threadGroupsZ += 0 if threadSizeXYZ[2] % work_group_size[2] == 0 else 1
+
+        glDispatchCompute(threadGroupsX, threadGroupsY, threadGroupsZ)
