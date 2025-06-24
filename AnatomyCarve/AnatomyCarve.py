@@ -315,13 +315,14 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         #print(colorMap.shape)
         
-        ## TODO: Remove
-        for i in range(colorMap.shape[0]):
-            colorMap[i, 0, 0] = 255
-            colorMap[i, 0, 1] = 255
-            colorMap[i, 0, 2] = 0
-            colorMap[i, 0, 3] = 255
-
+        # ## TODO: Remove
+        # for i in range(colorMap.shape[0]):
+        #     colorMap[i, 0, 0] = 255
+        #     colorMap[i, 0, 1] = 255
+        #     colorMap[i, 0, 2] = 0
+        #     colorMap[i, 0, 3] = 255
+        
+        colorMap *= 255.0
         
 
         return Texture.fromArray(colorMap.astype(np.uint8), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
