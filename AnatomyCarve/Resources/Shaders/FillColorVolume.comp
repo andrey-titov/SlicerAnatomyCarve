@@ -25,7 +25,7 @@ void main() {
     }
     
     // load the label (uvec4.x holds our label)
-    int label = imageLoad(labelMap, coord).x;
+    int label = 1; //imageLoad(labelMap, coord).x;
     
     // map label → [0,1] lookup coordinate, with 0.5/sample-center offset
     float u = (float(label) + 0.5) / float(colorMapSize);
@@ -33,6 +33,11 @@ void main() {
     
     // fetch the colour
     vec4 color = texture(colorMap, uv);
+
+    // if (label == 0)
+    // {
+    //     color.a = 0;
+    // }
     
     // write to the output volume
     imageStore(colorVolume, coord, color);

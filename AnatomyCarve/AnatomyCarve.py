@@ -303,15 +303,15 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         NUM_COMPONENTS = 4
 
-        colorMap = np.zeros((maxLabel + 1, NUM_COMPONENTS))
+        colorMap = np.zeros((maxLabel + 1, 1, NUM_COMPONENTS))
 
         for label in labelColorMapping:
-            colorMap[label, 0] = labelColorMapping[label][0]
-            colorMap[label, 1] = labelColorMapping[label][1]
-            colorMap[label, 2] = labelColorMapping[label][2]
-            colorMap[label, 3] = 1.0
+            colorMap[label, 0, 0] = labelColorMapping[label][0]
+            colorMap[label, 0, 1] = labelColorMapping[label][1]
+            colorMap[label, 0, 2] = labelColorMapping[label][2]
+            colorMap[label, 0, 3] = 1.0
 
-        colorMap[0, 3] = 0.0
+        colorMap[0, 0, 3] = 0.0
 
         #print(colorMap.shape)
         
@@ -319,7 +319,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         
 
-        return Texture.fromArray(colorMap, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE)
+        return Texture.fromArray(colorMap, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
@@ -350,7 +350,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         dims = dims[::-1]
         
-        print(dims)
+        #print(dims)
         
         arrayR = np.zeros(dims, dtype=np.float32)
         arrayG = np.ones(dims, dtype=np.float32)
@@ -360,9 +360,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         arrayRGBA = np.stack((arrayR, arrayG, arrayB, arrayA), axis=-1)
         
         minAlpha, maxAlpha = int(arrayA.min()), int(arrayA.max())
-        print(f"Alpha range (NumPy): min={minAlpha}, max={maxAlpha}")
+        #print(f"Alpha range (NumPy): min={minAlpha}, max={maxAlpha}")
         
-        print(arrayRGBA.shape)
+        #print(arrayRGBA.shape)
         
         # Create new volume node
         rgbaVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
@@ -462,10 +462,10 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         vtkScalars = mergedLabelmap.GetPointData().GetScalars()
         arr = numpy_support.vtk_to_numpy(vtkScalars)
         dims = mergedLabelmap.GetDimensions()
-        arr = arr.reshape(dims[2], dims[1], dims[0])
+        arr = arr.reshape(dims[0], dims[1], dims[2])
         print("Multi-label shape:", arr.shape)
         
-        return Texture.fromArray(arr.astype(np.int16), GL_R16, GL_RED, GL_SHORT)
+        return Texture.fromArray(arr.astype(np.int16), GL_R16I, GL_RED_INTEGER, GL_SHORT, True)
     
     def applyNoiseComputeShader(self):
         self.shader = ComputeShader("Noise.comp")

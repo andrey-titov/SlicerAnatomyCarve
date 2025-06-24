@@ -41,17 +41,19 @@ class Texture:
     def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode):
         t = cls()
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
-        t.uploadData(data, GL_R32F, GL_R, GL_FLOAT)
+        t.uploadData(data, GL_R32F, GL_R, GL_FLOAT, False)
         return t
 
     # Initialize from new data
     @classmethod
-    def fromArray(cls, data: np.ndarray, internalformat: int, format: int, type: int):
+    def fromArray(cls, data: np.ndarray, internalformat: int, format: int, type: int, isScalarComponent: bool):
         t = cls()
-        t.uploadData(data, internalformat, format, type)
+        t.uploadData(data, internalformat, format, type, isScalarComponent)
         return t
 
-    def uploadData(self, data: np.ndarray, internalformat: int, format: int, type: int):
+    def uploadData(self, data: np.ndarray, internalformat: int, format: int, type: int, isScalarComponent: bool):
+        self.dims = data.shape if isScalarComponent else data.shape[:-1]
+        print(self.dims)
         
         self.textureId = glGenTextures(1)
         
@@ -59,15 +61,13 @@ class Texture:
         self.format = format
         self.type = type
 
-        if len(data.shape) == 2:
-            self.dims = data.shape
+        if len(self.dims) == 2: #isScalarComponent and len(data.shape) == 2 or not isScalarComponent and len(data.shape) == 3: 
             glBindTexture(GL_TEXTURE_2D, self.textureId)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glTexStorage2D(GL_TEXTURE_2D, 1, self.internalformat, *self.dims)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, *self.dims, self.format, self.type, data.ravel())
-        elif len(data.shape) == 3:
-            self.dims = data.shape[::-1]
+        elif len(self.dims) == 3: #isScalarComponent and len(data.shape) == 3 or not isScalarComponent and len(data.shape) == 4:
             glBindTexture(GL_TEXTURE_3D, self.textureId)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
