@@ -4,10 +4,10 @@
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 // binding 0: input label map (unsigned integer 3D image)
-layout(binding = 0, r16i) readonly uniform iimage3D labelMap;
+layout(binding = 0, r32i) readonly uniform iimage3D labelMap;
 
 // binding 1: colour map, stored as a 2D texture of size (colorMapSize × 1)
-layout(binding = 1) uniform sampler2D colorMap;
+layout(binding = 1, rgba8) readonly uniform image2D colorMap;
 
 // binding 2: output coloured volume (8-bit RGBA image)
 layout(binding = 2, rgba32f) writeonly uniform image3D colorVolume;
@@ -27,12 +27,12 @@ void main() {
     // load the label (uvec4.x holds our label)
     int label = 1; //imageLoad(labelMap, coord).x;
     
-    // map label → [0,1] lookup coordinate, with 0.5/sample-center offset
-    float u = (float(label) + 0.5) / float(colorMapSize);
-    vec2 uv = vec2(u, 0.5); 
+    // // map label → [0,1] lookup coordinate, with 0.5/sample-center offset
+    // float u = (float(label) + 0.5) / float(colorMapSize);
+    // vec2 uv = vec2(u, 0.5); 
     
     // fetch the colour
-    vec4 color = texture(colorMap, uv);
+    vec4 color = imageLoad(colorMap, ivec2(label,0));
 
     // if (label == 0)
     // {

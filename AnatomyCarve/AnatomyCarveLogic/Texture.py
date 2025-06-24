@@ -65,6 +65,8 @@ class Texture:
             glBindTexture(GL_TEXTURE_2D, self.textureId)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
             glTexStorage2D(GL_TEXTURE_2D, 1, self.internalformat, *self.dims)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, *self.dims, self.format, self.type, data.ravel())
         elif len(self.dims) == 3: #isScalarComponent and len(data.shape) == 3 or not isScalarComponent and len(data.shape) == 4:

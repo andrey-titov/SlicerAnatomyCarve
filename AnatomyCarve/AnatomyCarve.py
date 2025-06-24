@@ -315,11 +315,16 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         #print(colorMap.shape)
         
-        
+        ## TODO: Remove
+        for i in range(colorMap.shape[0]):
+            colorMap[i, 0, 0] = 255
+            colorMap[i, 0, 1] = 255
+            colorMap[i, 0, 2] = 0
+            colorMap[i, 0, 3] = 255
 
         
 
-        return Texture.fromArray(colorMap, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
+        return Texture.fromArray(colorMap.astype(np.uint8), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
@@ -465,7 +470,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         arr = arr.reshape(dims[0], dims[1], dims[2])
         print("Multi-label shape:", arr.shape)
         
-        return Texture.fromArray(arr.astype(np.int16), GL_R16I, GL_RED_INTEGER, GL_SHORT, True)
+        return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
     def applyNoiseComputeShader(self):
         self.shader = ComputeShader("Noise.comp")
