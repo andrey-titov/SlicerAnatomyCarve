@@ -274,7 +274,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.volumeColor = self.createVectorVolume()
         self.labelMap = self.createLabelTexture()
         #self.applyNoiseComputeShader()
-        #self.applyFillColorComputeShader()
+        self.applyFillColorComputeShader()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -301,7 +301,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             for segID in segmentIDs
         )
 
-        NUM_COMPONENTS = 3
+        NUM_COMPONENTS = 4
 
         colorMap = np.zeros((maxLabel + 1, NUM_COMPONENTS))
 
@@ -309,6 +309,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             colorMap[label, 0] = labelColorMapping[label][0]
             colorMap[label, 1] = labelColorMapping[label][1]
             colorMap[label, 2] = labelColorMapping[label][2]
+            colorMap[label, 3] = 1.0
+
+        colorMap[0, 3] = 0.0
 
         #print(colorMap.shape)
         
@@ -316,7 +319,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         
 
-        return Texture.fromArray(colorMap, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE)
+        return Texture.fromArray(colorMap, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE)
 
         ## 4. Print it out
         #print("Label → Color mapping:")
