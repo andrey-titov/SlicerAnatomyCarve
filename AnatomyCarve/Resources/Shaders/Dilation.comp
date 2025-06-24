@@ -1,0 +1,58 @@
+#version 430
+
+// Work-group size
+layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+// binding 0: existing voxel grid 
+layout (binding = 0, r8) readonly uniform image3D voxelGrid;
+
+// binding 1: grid of voxels once dilation has been completed
+layout (binding = 1, r8) writeonly uniform image3D outputGrid;
+
+// binding 2: input label map (unsigned integer 3D image) 
+layout (binding = 2, r32i) readonly uniform iimage3D labelMap;
+
+void main() {
+
+    ivec3 dimensions = imageSize(voxelGrid);
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
+
+    if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z)
+    {
+        return;
+    }
+
+    int label = imageLoad(labelMap, coord).x;
+    int averageCount = 0;
+
+    if (label == 0)
+    {
+        vec4 color = vec4(0.0);
+
+        for (int z = -1; z < 2; z++)
+        {
+            for (int y = -1; y < 2; y++)
+            {
+                for (int x = -1; x < 2; x++)
+                {
+                    ivec3 neighbourPos = coord + ivec3(x,y,z);
+
+                    // load the label for reference, uvec4.x holds the label.
+                    int neighbourLabel = imageLoad(labelMap, neighbourPos).x; 
+
+                    // Only include neighbours that actually have a color to combine
+                    if (neighbourLabel != 0)
+                    {
+                        averageCount++;
+                        color += imageLoad(voxelGrid, neighbourPos);
+                    }
+                }
+            }
+        }
+
+        // average the values
+        color /= (float)averageCount;
+
+        imageStore(outputGrid, pos, color);
+    }
+}

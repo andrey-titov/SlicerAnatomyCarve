@@ -275,6 +275,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.labelMap = self.createLabelTexture()
         #self.applyNoiseComputeShader()
         self.applyFillColorComputeShader()
+        # self.applyDilationComputeShader()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -362,7 +363,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         arrayG = np.ones(dims, dtype=np.float32)
         arrayB = np.ones(dims, dtype=np.float32)        
         arrayA = slicer.util.arrayFromVolume(originalVolume).astype(np.float32) #np.ones(dims, dtype=np.uint8)
-        
+
         arrayRGBA = np.stack((arrayR, arrayG, arrayB, arrayA), axis=-1)
         
         minAlpha, maxAlpha = int(arrayA.min()), int(arrayA.max())
@@ -428,6 +429,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #     print("ViewNode is not currently in any visible 3D view.")
         
         textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
+        self.visibleTextureId = textureId
+
         #print(textureId)
         return Texture.fromOpenGLTexture(textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
         
@@ -520,6 +523,20 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
         glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.labelToColor2D.dims[0])
         shader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
+    def applyDilationComputeShader(self):
+        dilationShader = ComputeShader("Dilation.comp")
+
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        originalVolume = self.logic.getParameterNode().intensityVolume
+        outputGrid = Texture.fromOpenGLTexture(self.textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
+        glUseProgram(dilationShader.program)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.volumeColor.internalformat)
+        glBindImageTexture(1, outputGrid.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, outputGrid.internalformat)
+        glBindImageTexture(2, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
+        dilationShader.dispatch(self.volumeColor.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
 #
