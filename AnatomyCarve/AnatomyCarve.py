@@ -321,6 +321,23 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #print("Label → Color mapping:")
         #for label, (r, g, b) in sorted(labelColorMapping.items()):
         #print(f"  • Label {label:3d} → (R={r:.3f}, G={g:.3f}, B={b:.3f})")
+
+    def getViewIndex(self) -> int:
+        # assume viewNode is your vtkMRMLViewNode
+        layoutManager = slicer.app.layoutManager()
+        nViews = layoutManager.threeDViewCount
+        viewNode = self.logic.getParameterNode().view
+        
+        viewIndex = -1
+        for i in range(nViews):
+            # get the i-th 3D widget
+            threeDWidget = layoutManager.threeDWidget(i)
+            # get its view node
+            vn = threeDWidget.threeDView().mrmlViewNode()
+            if vn.GetID() == viewNode.GetID():
+                viewIndex = i
+                break
+        return viewIndex
         
     def createVectorVolume(self) -> Texture:
         originalVolume = self.logic.getParameterNode().intensityVolume
@@ -393,25 +410,12 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #vp.ShadeOff()                                 # equivalent to SetShade(0)
         #vpNode.Modified()                             # notify the MRML node of the change
         
-        # assume viewNode is your vtkMRMLViewNode
-        layoutManager = slicer.app.layoutManager()
-        nViews = layoutManager.threeDViewCount
-        viewNode = self.logic.getParameterNode().view
-        
-        viewIndex = None
-        for i in range(nViews):
-            # get the i-th 3D widget
-            threeDWidget = layoutManager.threeDWidget(i)
-            # get its view node
-            vn = threeDWidget.threeDView().mrmlViewNode()
-            if vn.GetID() == viewNode.GetID():
-                viewIndex = i
-                break
+        viewIndex = self.getViewIndex()
 
-        if viewIndex is not None:
-            print(f"ViewNode {viewNode.GetName()} has index {viewIndex}")
-        else:
-            print("ViewNode is not currently in any visible 3D view.")
+        # if viewIndex is not None:
+        #     print(f"ViewNode {viewNode.GetName()} has index {viewIndex}")
+        # else:
+        #     print("ViewNode is not currently in any visible 3D view.")
         
         textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
         #print(textureId)
@@ -463,7 +467,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.shader = ComputeShader("Noise.comp")
 
         # Get the render window from the 3D viewer
-        renderWindow = slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow()
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
 
         self.frame = 0
         self.frameCount = 0
@@ -473,22 +477,6 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
     
     def applyNoiseComputeShaderTick(self, caller, event):
-        # print("self")
-        # print(self)
-
-        # print("caller")
-        # print(caller)
-
-        # print("event")
-        # print(event)
-        # global frame, frameCount, lastTime, textureID, shaderProg
-        # ensureGLContext()
-        # runShaderLoop(shaderProg, textureID, dims, scale=0.0025, frame=frame)
-        # #slicer.app.processEvents()
-        # slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow().Render()
-        # # Read back texture and update slicer volume
-        # #noisyArray = readBackTexture(texID, volShape)
-        # #updateVolumeNode(volumeNode, noisyArray)
 
         shader = self.shader
 
@@ -508,6 +496,19 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             print(f"FPS: {self.frameCount}")
             frameCount = 0
             lastTime = now
+
+    def applyFillColorComputeShader(self):
+        self.shader = ComputeShader("FillColorVolume.comp")
+
+        # Get the render window from the 3D viewer
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        self.frame = 0
+        self.frameCount = 0
+        self.lastTime = time.time()
+        
+        # Add observer for before-render event
+        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
 
 #
 # AnatomyCarveTest
