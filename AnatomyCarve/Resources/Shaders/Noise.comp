@@ -13,13 +13,10 @@ void main() {
     ivec3 dimensions = imageSize(volumeTex);
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
-    if (coord.x >= dimensions.x
-    || coord.y >= dimensions.y
-    || coord.z >= dimensions.z)
+    if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z)
     {
         return;
     }
-
     
     float r = rand(vec3(coord) + float(frame));
     float noise = r;

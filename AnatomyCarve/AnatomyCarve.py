@@ -273,7 +273,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.labelToColor2D = self.getSegmentLabelToColorMap()
         self.volumeColor = self.createVectorVolume()
         self.labelMap = self.createLabelTexture()
-        self.applyNoiseComputeShader()
+        #self.applyNoiseComputeShader()
+        #self.applyFillColorComputeShader()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -485,8 +486,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
         glUniform1ui(glGetUniformLocation(shader.program, "frame"), self.frame)
         #print(self.volumeColor.dims)
-        shader.dispatch(self.volumeColor.dims)
-        
+        shader.dispatch(self.volumeColor.dims)        
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
         self.frame += 1
@@ -499,16 +499,19 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def applyFillColorComputeShader(self):
         self.shader = ComputeShader("FillColorVolume.comp")
+        shader = self.shader
 
         # Get the render window from the 3D viewer
         renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
 
-        self.frame = 0
-        self.frameCount = 0
-        self.lastTime = time.time()
-        
-        # Add observer for before-render event
-        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
+        glUseProgram(shader.program)
+        glBindImageTexture(0, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
+        glBindImageTexture(1, self.labelToColor2D.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelToColor2D.internalformat)
+        glBindImageTexture(2, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
+        glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
+        glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.labelToColor2D.dims[0])
+        shader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
 #
 # AnatomyCarveTest
