@@ -526,7 +526,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
     def applyDilationComputeShader(self):
-        dilationShader = ComputeShader("Dilation.comp")
+        dilationShader = ComputeShader("DilateColorVolume.comp")
 
         renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
 
