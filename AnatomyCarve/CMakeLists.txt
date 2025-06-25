@@ -17,6 +17,7 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Shaders/FillColorVolume.comp
   Resources/Shaders/Noise.comp
   Resources/Shaders/DilateColorVolume.comp
+  Resources/Shaders/CarveVoxels.comp
   )
 
 #-----------------------------------------------------------------------------

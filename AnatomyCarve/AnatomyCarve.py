@@ -276,6 +276,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #self.applyNoiseComputeShader()
         self.applyFillColorComputeShader()
         # self.applyDilationComputeShader()
+        self.applyCarveVoxelsComputeShader()
 
     def getSegmentLabelToColorMap(self) -> Texture:
         segNode = self.logic.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -430,6 +431,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
         self.visibleTextureId = textureId
+        self.rgbaVolume = rgbaVolume
 
         #print(textureId)
         return Texture.fromOpenGLTexture(textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
@@ -476,6 +478,13 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
+    def applyCarveVoxelsComputeShader(self):
+        self.shader = ComputeShader("CarveVoxels.comp")
+
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyCarveVoxelsComputeShaderTick)
+
     def applyNoiseComputeShader(self):
         self.shader = ComputeShader("Noise.comp")
 
@@ -489,6 +498,21 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Add observer for before-render event
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
     
+    def applyCarveVoxelsComputeShaderTick(self, caller, event):
+        shader = self.shader
+
+        modelMatrix = vtk.vtkMAtrix4x4()
+        self.rgbaVolume.GetIJKToRASMatrix(modelMatrix)
+
+        glUseProgram(shader.program)
+        # TODO: replace these values with the proper sphere values, x,y,z and w as the radius
+        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), 0.0, 0.0, 0.0, 200.0)
+        glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, modelMatrix)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
+
+        shader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
     def applyNoiseComputeShaderTick(self, caller, event):
 
         shader = self.shader
