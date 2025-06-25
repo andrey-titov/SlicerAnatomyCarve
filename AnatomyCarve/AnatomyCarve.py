@@ -607,7 +607,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, self.volumeColor.internalformat)
         glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
-        glBindImageTexture(2, self.intensityTexture.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F)
+        glBindImageTexture(2, self.intensityTexture.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32F)
 
         shader.dispatch(self.volumeColor.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)

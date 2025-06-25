@@ -41,6 +41,11 @@ class Texture:
     def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int):
         t = cls()
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
+        data = data.reshape(data.shape[::-1])
+        min = data.min()
+        max = data.max()
+        data = (data - min) / (max - min)
+        # data = 
         t.uploadData(data, internalformat, format, type, True)
         return t
 

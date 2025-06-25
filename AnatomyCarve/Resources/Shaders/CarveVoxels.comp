@@ -19,16 +19,21 @@ layout(binding = 0, rgba32f) uniform image3D colorVolume;
 layout(binding = 1, r32i) readonly uniform iimage3D labelMap;
 
 // binding 2: 
-layout(binding = 2, r32f) uniform image3D intensityVolume;
+layout(binding = 2, r32f) readonly uniform image3D intensityVolume;
 
 void main() {
     ivec3 dimensions = imageSize(colorVolume);
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
+    if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z)
+    {
+        return;
+    }
+
     // load the label (uvec4.x holds our label)
     int label = imageLoad(labelMap, coord).x;
-    
-    if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z || label == 0)
+
+    if (label == 0)
     {
         return;
     }
@@ -42,7 +47,9 @@ void main() {
 
     int clippable = clipMask[label];
 
-    float intensity = imageLoad(intensityVolume, coord).a;
+    float intensity = imageLoad(intensityVolume, coord).r;
+
+    // intensity = (intensity - -1074.0) / (3291.0 - -1074.0);
 
     if (distanceToSphere <= sphereDetails.w && clippable == 0)
     {
