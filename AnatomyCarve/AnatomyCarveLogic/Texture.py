@@ -38,10 +38,10 @@ class Texture:
 
     # Initialize from existing volume node
     @classmethod
-    def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode):
+    def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int):
         t = cls()
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
-        t.uploadData(data, GL_R32F, GL_R, GL_FLOAT, False)
+        t.uploadData(data, internalformat, format, type, False)
         return t
 
     # Initialize from new data
