@@ -513,9 +513,11 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         spherePos = [0.0,0.0,0.0]
         self.carvingSphere.GetNthControlPointPosition(0, spherePos)
+        visibilities = np.zeros(1024)## np.random.randint(0, 2, 1024)
 
         glUseProgram(shader.program)
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
+        glUniform1iv(glGetUniformLocation(shader.program, "labelVisibility"), len(visibilities), visibilities)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
         glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
