@@ -486,7 +486,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         arr = numpy_support.vtk_to_numpy(vtkScalars)
         dims = mergedLabelmap.GetDimensions()
         arr = arr.reshape(dims[0], dims[1], dims[2])
-        print("Multi-label shape:", arr.shape)
+        # print("Multi-label shape:", arr.shape)
         
         return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
@@ -580,7 +580,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.shaderCarveVoxels = ComputeShader("CarveVoxels.comp")
 
         renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
-
+        self.intensityTexture = Texture.fromVolumeNode(self.logic.getParameterNode().intensityVolume, GL_R32F, GL_RED, GL_FLOAT)
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyCarveVoxelsComputeShaderTick)
 
     def applyCarveVoxelsComputeShaderTick(self, caller, event):
@@ -599,16 +599,15 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.carvingSphere.GetNthControlPointPosition(0, spherePos)
         self.createClipMask()
 
-        print(self.clipMask.shape[0])
-        intensityTexture = Texture.fromVolumeNode(self.logic.getParameterNode().intensityVolume, GL_RGBA32F, GL_RGB, GL_FLOAT)
+        # print(self.clipMask.shape[0])
 
         glUseProgram(shader.program)
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
         glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
-        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, self.volumeColor.internalformat)
         glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
-        glBindImageTexture(2, intensityTexture.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F)
+        glBindImageTexture(2, self.intensityTexture.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F)
 
         shader.dispatch(self.volumeColor.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)

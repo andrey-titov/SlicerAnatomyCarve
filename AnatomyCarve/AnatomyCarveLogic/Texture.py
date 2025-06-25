@@ -41,7 +41,7 @@ class Texture:
     def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int):
         t = cls()
         data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
-        t.uploadData(data, internalformat, format, type, False)
+        t.uploadData(data, internalformat, format, type, True)
         return t
 
     # Initialize from new data
@@ -53,7 +53,7 @@ class Texture:
 
     def uploadData(self, data: np.ndarray, internalformat: int, format: int, type: int, isScalarComponent: bool):
         self.dims = data.shape if isScalarComponent else data.shape[:-1]
-        print(self.dims)
+        # print(self.dims)
         
         self.textureId = glGenTextures(1)
         
