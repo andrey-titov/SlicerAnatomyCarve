@@ -44,6 +44,10 @@ class ComputeShader:
         prog = glCreateProgram()
         glAttachShader(prog, shader)
         glLinkProgram(prog)
+        status = glGetProgramiv(prog, GL_LINK_STATUS)
+        if not status:
+            print(glGetProgramInfoLog(prog))
+            raise RuntimeError("Shader program failed to link.")
         return prog
     
     def dispatch(self, threadSizeXYZ: tuple[int,int,int]):

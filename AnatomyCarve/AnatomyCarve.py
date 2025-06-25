@@ -275,6 +275,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.labelMap = self.createLabelTexture()
         #self.applyNoiseComputeShader()
         self.addCarvingSphere()
+        
         self.applyFillColorComputeShader()
         # self.applyDilationComputeShader()
         self.applyCarveVoxelsComputeShader()
@@ -480,7 +481,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
     def applyCarveVoxelsComputeShader(self):
-        self.shader = ComputeShader("CarveVoxels.comp")
+        self.shaderCarveVoxels = ComputeShader("CarveVoxels.comp")
 
         renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
 
@@ -500,7 +501,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
     
     def applyCarveVoxelsComputeShaderTick(self, caller, event):
-        shader = self.shader
+        shader = self.shaderCarveVoxels
 
         modelMatrix = vtk.vtkMatrix4x4()
         self.rgbaVolume.GetIJKToRASMatrix(modelMatrix)
@@ -513,11 +514,14 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         spherePos = [0.0,0.0,0.0]
         self.carvingSphere.GetNthControlPointPosition(0, spherePos)
-        visibilities = np.zeros(1024)## np.random.randint(0, 2, 1024)
+        # visibilities = np.zeros(1024)## np.random.randint(0, 2, 1024)
+        self.createClipMask()
+
+        print(self.clipMask.shape[0])
 
         glUseProgram(shader.program)
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
-        glUniform1iv(glGetUniformLocation(shader.program, "labelVisibility"), len(visibilities), visibilities)
+        glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
         glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
@@ -559,9 +563,41 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # displayNode.SetTextScale(1.5)
         self.carvingSphere = carvingSphere
 
+    def createClipMask(self):
+        # Get the currently selected segmentation node
+        segmentationNode = self.logic.getParameterNode().segmentation  # Replace with your actual node name if needed
+        
+        segmentation = segmentationNode.GetSegmentation()
+        displayNode = segmentationNode.GetDisplayNode()
+        segmentIDs = segmentation.GetSegmentIDs()  
+
+        # segmentInfoArray = []
+
+        maxLabel = max(
+            segmentation.GetSegment(segID).GetLabelValue() # vtkSegment::GetLabelValue 
+            for segID in segmentIDs
+        )
+
+        self.clipMask = np.zeros((maxLabel + 1))
+
+        for i in range(segmentation.GetNumberOfSegments()):
+            segmentID = segmentation.GetNthSegmentID(i)
+            # segment = segmentation.GetSegment(segmentID)
+            isVisible = displayNode.GetSegmentVisibility(segmentID)
+            labelValue = i + 1
+            self.clipMask[labelValue] = 1 if bool(isVisible) else 0
+
+        self.clipMask = self.clipMask.astype(np.int32)
+
+        # print(self.clipMask)
+
+        # # Example output
+        # for entry in segmentInfoArray:
+        #     print(entry)
+
     def applyFillColorComputeShader(self):
-        self.shader = ComputeShader("FillColorVolume.comp")
-        shader = self.shader
+        self.shaderFillColorVolume = ComputeShader("FillColorVolume.comp")
+        shader = self.shaderFillColorVolume
 
         # Get the render window from the 3D viewer
         renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
