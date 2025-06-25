@@ -274,6 +274,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.volumeColor = self.createVectorVolume()
         self.labelMap = self.createLabelTexture()
         #self.applyNoiseComputeShader()
+        self.addCarvingSphere()
         self.applyFillColorComputeShader()
         # self.applyDilationComputeShader()
 
@@ -508,6 +509,19 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             print(f"FPS: {self.frameCount}")
             frameCount = 0
             lastTime = now
+
+    def addCarvingSphere(self):
+        # Create a new fiducial list
+        carvingSphere = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Carving Sphere")
+
+        # Add a fiducial at (x, y, z)
+        carvingSphere.AddControlPoint([10.0, 20.0, 30.0]) # Coordinates in RAS
+
+        print(f"Sphere radius: {self.ui.sphereRadius.value}")
+
+        # # Optionally change display settings
+        # displayNode = fiducialsNode.GetDisplayNode()
+        # displayNode.SetTextScale(1.5)
 
     def applyFillColorComputeShader(self):
         self.shader = ComputeShader("FillColorVolume.comp")
