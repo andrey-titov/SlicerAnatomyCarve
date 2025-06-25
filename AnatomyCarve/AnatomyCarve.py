@@ -511,9 +511,11 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             for row in range(4):
                 gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
 
+        spherePos = [0.0,0.0,0.0]
+        self.carvingSphere.GetNthControlPointPosition(0, spherePos)
+
         glUseProgram(shader.program)
-        # TODO: replace these values with the proper sphere values, x,y,z and w as the radius
-        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), 0.0, 0.0, 0.0, 200.0)
+        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
         glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
@@ -553,6 +555,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # # Optionally change display settings
         # displayNode = fiducialsNode.GetDisplayNode()
         # displayNode.SetTextScale(1.5)
+        self.carvingSphere = carvingSphere
 
     def applyFillColorComputeShader(self):
         self.shader = ComputeShader("FillColorVolume.comp")
