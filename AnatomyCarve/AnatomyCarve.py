@@ -268,6 +268,31 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #self.logic.startRender() TODO: put into logic class
         self.startRender()
 
+    def getViewIndex(self) -> int:
+        # assume viewNode is your vtkMRMLViewNode
+        layoutManager = slicer.app.layoutManager()
+        nViews = layoutManager.threeDViewCount
+        viewNode = self.logic.getParameterNode().view
+        
+        viewIndex = -1
+        for i in range(nViews):
+            # get the i-th 3D widget
+            threeDWidget = layoutManager.threeDWidget(i)
+            # get its view node
+            vn = threeDWidget.threeDView().mrmlViewNode()
+            if vn.GetID() == viewNode.GetID():
+                viewIndex = i
+                break
+        return viewIndex
+    
+    
+
+    ############################################################################################################
+    ############################################################################################################
+    ############################################################################################################
+    ############################################################################################################
+    ############################################################################################################
+
     def startRender(self) -> None:
         self.node: AnatomyCarveParameterNode = self.logic.getParameterNode()        
         self.labelToColor2D = self.getSegmentLabelToColorMap()
@@ -336,22 +361,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #for label, (r, g, b) in sorted(labelColorMapping.items()):
         #print(f"  • Label {label:3d} → (R={r:.3f}, G={g:.3f}, B={b:.3f})")
 
-    def getViewIndex(self) -> int:
-        # assume viewNode is your vtkMRMLViewNode
-        layoutManager = slicer.app.layoutManager()
-        nViews = layoutManager.threeDViewCount
-        viewNode = self.logic.getParameterNode().view
-        
-        viewIndex = -1
-        for i in range(nViews):
-            # get the i-th 3D widget
-            threeDWidget = layoutManager.threeDWidget(i)
-            # get its view node
-            vn = threeDWidget.threeDView().mrmlViewNode()
-            if vn.GetID() == viewNode.GetID():
-                viewIndex = i
-                break
-        return viewIndex
+    
         
     def createVectorVolume(self) -> Texture:
         originalVolume = self.logic.getParameterNode().intensityVolume
@@ -480,13 +490,6 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
-    def applyCarveVoxelsComputeShader(self):
-        self.shaderCarveVoxels = ComputeShader("CarveVoxels.comp")
-
-        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
-
-        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyCarveVoxelsComputeShaderTick)
-
     def applyNoiseComputeShader(self):
         self.shader = ComputeShader("Noise.comp")
 
@@ -500,35 +503,6 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Add observer for before-render event
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyNoiseComputeShaderTick)
     
-    def applyCarveVoxelsComputeShaderTick(self, caller, event):
-        shader = self.shaderCarveVoxels
-
-        modelMatrix = vtk.vtkMatrix4x4()
-        self.rgbaVolume.GetIJKToRASMatrix(modelMatrix)
-
-        gl_mat = np.zeros(16, dtype=np.float32)
-
-        for col in range(4):
-            for row in range(4):
-                gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
-
-        spherePos = [0.0,0.0,0.0]
-        self.carvingSphere.GetNthControlPointPosition(0, spherePos)
-        # visibilities = np.zeros(1024)## np.random.randint(0, 2, 1024)
-        self.createClipMask()
-
-        print(self.clipMask.shape[0])
-
-        glUseProgram(shader.program)
-        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
-        glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
-        glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
-        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
-        glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
-
-        shader.dispatch(self.volumeColor.dims)
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-
     def applyNoiseComputeShaderTick(self, caller, event):
 
         shader = self.shader
@@ -563,6 +537,81 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # displayNode.SetTextScale(1.5)
         self.carvingSphere = carvingSphere
 
+    
+
+    
+    
+
+    
+
+    
+
+    def applyFillColorComputeShader(self):
+        self.shaderFillColorVolume = ComputeShader("FillColorVolume.comp")
+        shader = self.shaderFillColorVolume
+
+        # Get the render window from the 3D viewer
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        glUseProgram(shader.program)
+        glBindImageTexture(0, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
+        glBindImageTexture(1, self.labelToColor2D.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelToColor2D.internalformat)
+        glBindImageTexture(2, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
+        glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
+        glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.labelToColor2D.dims[0])
+        shader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
+    def applyDilationComputeShader(self):
+        dilationShader = ComputeShader("DilateColorVolume.comp")
+
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        originalVolume = self.logic.getParameterNode().intensityVolume
+        outputGrid = Texture.fromOpenGLTexture(self.textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
+        glUseProgram(dilationShader.program)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.volumeColor.internalformat)
+        glBindImageTexture(1, outputGrid.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, outputGrid.internalformat)
+        glBindImageTexture(2, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
+        dilationShader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
+    def applyCarveVoxelsComputeShader(self):
+        self.shaderCarveVoxels = ComputeShader("CarveVoxels.comp")
+
+        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
+
+        observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyCarveVoxelsComputeShaderTick)
+
+    def applyCarveVoxelsComputeShaderTick(self, caller, event):
+        shader = self.shaderCarveVoxels
+
+        modelMatrix = vtk.vtkMatrix4x4()
+        self.rgbaVolume.GetIJKToRASMatrix(modelMatrix)
+
+        gl_mat = np.zeros(16, dtype=np.float32)
+
+        for col in range(4):
+            for row in range(4):
+                gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
+
+        spherePos = [0.0,0.0,0.0]
+        self.carvingSphere.GetNthControlPointPosition(0, spherePos)
+        # visibilities = np.zeros(1024)## np.random.randint(0, 2, 1024)
+        self.createClipMask()
+
+        # print(self.clipMask.shape[0])
+
+        glUseProgram(shader.program)
+        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.ui.sphereRadius.value)
+        glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
+        glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
+        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_WRITE, self.volumeColor.internalformat)
+        glBindImageTexture(1, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
+
+        shader.dispatch(self.volumeColor.dims)
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+
     def createClipMask(self):
         # Get the currently selected segmentation node
         segmentationNode = self.logic.getParameterNode().segmentation  # Replace with your actual node name if needed
@@ -594,36 +643,6 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # # Example output
         # for entry in segmentInfoArray:
         #     print(entry)
-
-    def applyFillColorComputeShader(self):
-        self.shaderFillColorVolume = ComputeShader("FillColorVolume.comp")
-        shader = self.shaderFillColorVolume
-
-        # Get the render window from the 3D viewer
-        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
-
-        glUseProgram(shader.program)
-        glBindImageTexture(0, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
-        glBindImageTexture(1, self.labelToColor2D.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelToColor2D.internalformat)
-        glBindImageTexture(2, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
-        glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
-        glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.labelToColor2D.dims[0])
-        shader.dispatch(self.volumeColor.dims)
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-
-    def applyDilationComputeShader(self):
-        dilationShader = ComputeShader("DilateColorVolume.comp")
-
-        renderWindow = slicer.app.layoutManager().threeDWidget(self.getViewIndex()).threeDView().renderWindow()
-
-        originalVolume = self.logic.getParameterNode().intensityVolume
-        outputGrid = Texture.fromOpenGLTexture(self.textureId, originalVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
-        glUseProgram(dilationShader.program)
-        glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.volumeColor.internalformat)
-        glBindImageTexture(1, outputGrid.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, outputGrid.internalformat)
-        glBindImageTexture(2, self.labelMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.labelMap.internalformat)
-        dilationShader.dispatch(self.volumeColor.dims)
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
 #
 # AnatomyCarveTest
