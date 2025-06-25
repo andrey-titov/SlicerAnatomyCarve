@@ -502,13 +502,19 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def applyCarveVoxelsComputeShaderTick(self, caller, event):
         shader = self.shader
 
-        modelMatrix = vtk.vtkMAtrix4x4()
+        modelMatrix = vtk.vtkMatrix4x4()
         self.rgbaVolume.GetIJKToRASMatrix(modelMatrix)
+
+        gl_mat = np.zeros(16, dtype=np.float32)
+
+        for col in range(4):
+            for row in range(4):
+                gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
 
         glUseProgram(shader.program)
         # TODO: replace these values with the proper sphere values, x,y,z and w as the radius
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), 0.0, 0.0, 0.0, 200.0)
-        glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, modelMatrix)
+        glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         glBindImageTexture(0, self.volumeColor.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.volumeColor.internalformat)
 
         shader.dispatch(self.volumeColor.dims)
