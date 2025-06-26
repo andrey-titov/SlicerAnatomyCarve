@@ -8,21 +8,22 @@ AnatomyCarve is a module that allows interactive visualization of 3D medical ima
 
 - AnatomyCarve: The main module that presents a user interface to select images, insert a sphere in the scene, and then select which segments should be clipped.
 
-# Ttutorial
+# Tutorial
 
 1. Install the AnatomyCarve module from the Extensions Manager in 3D Slicer. Restart 3D Slicer.
 2. Press on the "Download Sample Data" button, and click on the following datasets:
-  - CTA abdomen (Panormaix)
-  - CTA abdomen (Panoramix) segmentation
+    - CTA abdomen (Panoramix)
+    - CTA abdomen (Panoramix) segmentation
+
 3. Go to Modules => Rendering => AnatomyCarve.
 4. In the "Intensity volume" field, select "Panormix-cropped".
 5. In the "Segmentation" field, select "Panoramix-cropped_Segmentation".
 6. In the "View" field, select "View1".
 7. Click on the "Render" button.
-8. Scroll way down in the list of segments, and click on the visibility icon (the small eye at left column of each segment) for the following 3 segments:
-- subcutaneous_fat
-- torso_fat
-- muscle
+8. Scroll way down in the list of segments, and click on the visibility icon (the small eye at left column of each segment) for the following three segments:
+    - subcutaneous_fat
+    - torso_fat
+    - muscle
 9. Rotate the 3D view of main view by clicking on it and dragging the mouse. You will see that an invisible sphere was added into the image and it clips the three segments that were deselected previously.
 
 # For Developers
