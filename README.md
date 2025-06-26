@@ -8,6 +8,15 @@ AnatomyCarve is a module that allows interactive visualization of 3D medical ima
 
 - AnatomyCarve: The main module that presents a user interface to select images, insert a sphere in the scene, and then select which segments should be clipped.
 
+# Ttutorial
+
+1. Install the AnatomyCarve module from the Extensions Manager in 3D Slicer. Restart 3D Slicer.
+2. Press on the "Download Sample Data" button, and click on the following datasets:
+  - CTA abdomen (Panormaix)
+  - CTA abdomen (Panoramix) segmentation
+3. Go to Modules => Rendering => AnatomyCarve
+4.
+
 # For Developers
 
 In addition to the main volume node, a helper module VolumeTextureIdHelper is present that exposes some internal OpenGL data that is accessed by the main AnatomyCarve module.
