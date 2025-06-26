@@ -6,5 +6,5 @@ AnatomyCarve is a module that allows interactive visualization of 3D medical ima
 
 # Sub-Modules
 
-AnatomyCarve: The main module that presents a user interface to select images, insert a sphere in the scene, and then select which segments should be clipped.
-VolumeTextureIdHelper: A helper module that exposes some internal OpenGL data to be accessed by the main AnatomyCarve module.
+- AnatomyCarve: The main module that presents a user interface to select images, insert a sphere in the scene, and then select which segments should be clipped.
+- VolumeTextureIdHelper: A helper module that exposes some internal OpenGL data to be accessed by the main AnatomyCarve module.
