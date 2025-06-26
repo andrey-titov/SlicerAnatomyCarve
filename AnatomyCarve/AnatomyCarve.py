@@ -85,32 +85,18 @@ def registerSampleData():
     SampleData.SampleDataLogic.registerCustomSampleDataSource(
         # Category and sample name displayed in Sample Data module
         category="AnatomyCarve",
-        sampleName="AnatomyCarve1",
+        sampleName="CTA abdomen (Panoramix) segmentation",
         # Thumbnail should have size of approximately 260x280 pixels and stored in Resources/Icons folder.
         # It can be created by Screen Capture module, "Capture all views" option enabled, "Number of images" set to "Single".
-        thumbnailFileName=os.path.join(iconsPath, "AnatomyCarve1.png"),
+        thumbnailFileName=os.path.join(iconsPath, "Panoramix-cropped-segmentation.png"),
         # Download URL and target file name
-        uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95",
-        fileNames="AnatomyCarve1.nrrd",
+        uris="https://raw.githubusercontent.com/andrey-titov/SlicerAnatomyCarve/main/data/Panoramix-cropped.seg.nrrd",
+        fileNames="Panoramix-cropped.seg.nrrd",
         # Checksum to ensure file integrity. Can be computed by this command:
         #  import hashlib; print(hashlib.sha256(open(filename, "rb").read()).hexdigest())
-        checksums="SHA256:998cb522173839c78657f4bc0ea907cea09fd04e44601f17c82ea27927937b95",
+        checksums="SHA256:9ff0751ed41e49ca8b2baefbbb77854d09ef44dc15e9b8fd54e2916c2d71eade",
         # This node name will be used when the data set is loaded
-        nodeNames="AnatomyCarve1",
-    )
-
-    # AnatomyCarve2
-    SampleData.SampleDataLogic.registerCustomSampleDataSource(
-        # Category and sample name displayed in Sample Data module
-        category="AnatomyCarve",
-        sampleName="AnatomyCarve2",
-        thumbnailFileName=os.path.join(iconsPath, "AnatomyCarve2.png"),
-        # Download URL and target file name
-        uris="https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97",
-        fileNames="AnatomyCarve2.nrrd",
-        checksums="SHA256:1a64f3f422eb3d1c9b093d1a18da354b13bcf307907c66317e2463ee530b7a97",
-        # This node name will be used when the data set is loaded
-        nodeNames="AnatomyCarve2",
+        nodeNames="Panoramix-cropped_Segmentation",
     )
 
 
