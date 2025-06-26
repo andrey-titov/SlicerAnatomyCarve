@@ -50,6 +50,8 @@ public:
   QStringList categories()const override;
   QStringList dependencies() const override;
 
+  bool isHidden() const override { return true; };
+
 protected:
 
   /// Initialize the module. Register the volumes reader/writer

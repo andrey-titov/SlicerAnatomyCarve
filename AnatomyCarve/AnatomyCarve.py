@@ -43,21 +43,21 @@ class AnatomyCarve(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = _("AnatomyCarve")  # TODO: make this more human readable by adding spaces
+        self.parent.title = _("Anatomy Carve")
         # TODO: set categories (folders where the module shows up in the module selector)
-        self.parent.categories = [translate("qSlicerAbstractCoreModule", "Examples")]
+        self.parent.categories = [translate("qSlicerAbstractCoreModule", "Rendering")]
         self.parent.dependencies = []  # TODO: add here list of module names that this module requires
-        self.parent.contributors = ["John Doe (AnyWare Corp.)"]  # TODO: replace with "Firstname Lastname (Organization)"
+        self.parent.contributors = ["Andrey Titov (Ecole de Technologie Superieure)" , "Liam O'Connor (Concordia University)"]
         # TODO: update with short description of the module and a link to online module documentation
         # _() function marks text as translatable to other languages
         self.parent.helpText = _("""
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/organization/projectname#AnatomyCarve">module documentation</a>.
+AnatomyCarve is a module that allows interactive visualization of 3D medical images by enabling users to perform clipping on segments of their choice. This customized carving of the dataset enables the creation of detailed visualizations similar to those found in anatomical textbooks.
+See more information in <a href="https://github.com/andrey-titov/SlicerAnatomyCarve">module documentation</a>.
 """)
         # TODO: replace with organization, grant and thanks
         self.parent.acknowledgementText = _("""
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+This file was originally developed by Andrey Titov, Ecole de Technologie Superieure and Liam O'Connor, Concordia University.
+This work was funded by the Natural Sciences and Engineering Research Council of Canada, Discovery program (RGPIN-2020-05084), as well as by the Fonds de recherche du Quebec - Nature et technologies (B2X Doctoral Scholarship), Application 334501 (https://doi.org/10.69777/334501).
 """)
 
         # Additional initialization step after application startup is complete
