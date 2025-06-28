@@ -8,6 +8,11 @@ AnatomyCarve is a module that allows interactive visualization of 3D medical ima
 
 - AnatomyCarve: The main module that presents a user interface to select images, insert a sphere in the scene, and then select which segments should be clipped.
 
+# Prerequisites
+
+- Windows or Linux operating system.
+- GPU that supports OpenGL 4.3 or newer.
+
 # Tutorial
 
 1. Install the AnatomyCarve module from the Extensions Manager in 3D Slicer. Restart 3D Slicer.
