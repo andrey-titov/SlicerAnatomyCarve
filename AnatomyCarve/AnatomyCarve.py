@@ -94,7 +94,7 @@ def registerSampleData():
         fileNames="Panoramix-cropped.seg.nrrd",
         # Checksum to ensure file integrity. Can be computed by this command:
         #  import hashlib; print(hashlib.sha256(open(filename, "rb").read()).hexdigest())
-        checksums="SHA256:9ff0751ed41e49ca8b2baefbbb77854d09ef44dc15e9b8fd54e2916c2d71eade",
+        checksums="SHA256:327def5bb45f2ae86ce803aa5aa2b034f5d82dcc3eb3d0436eefd3bc09463ab8",
         # This node name will be used when the data set is loaded
         nodeNames="Panoramix-cropped_Segmentation",
     )
