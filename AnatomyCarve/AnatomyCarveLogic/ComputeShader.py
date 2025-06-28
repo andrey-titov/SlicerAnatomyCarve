@@ -29,7 +29,7 @@ class ComputeShader:
         shaderPath = os.path.join(moduleFolder, self.SHADER_PATH, computeShaderPath)
         shaderCode = ""
         
-        with open(shaderPath, "r") as f:
+        with open(shaderPath, mode="r", encoding="utf-8") as f:
             for line in f:
                 shaderCode += line
                 
