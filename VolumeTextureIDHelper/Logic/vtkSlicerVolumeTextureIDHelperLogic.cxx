@@ -227,7 +227,7 @@ int vtkSlicerVolumeTextureIDHelperLogic::GetTextureIdForVolume(vtkMRMLVolumeNode
             //    continue;
             //}
 
-            return GetTextureIdForMapper(glMapper, 0);
+            return GetTextureIdForMapper(glMapper, portIndex);
 
             /*textureManager->
 
