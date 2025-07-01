@@ -297,8 +297,21 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         # Create a new fiducial list
         carvingSphere = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Carving Sphere")
 
+        # 2. Grab its display node
+        dispNode = carvingSphere.GetDisplayNode()
+
         # Add a fiducial at (x, y, z)
-        carvingSphere.AddControlPoint([10.0, 20.0, 30.0]) # Coordinates in RAS
+        carvingSphere.AddControlPoint([0.0, 0.0, 0.0]) # Coordinates in RAS
+
+        # 3. Disable all snapping
+        #    this sets SnapMode → SnapModeUnconstrained (no snapping to surfaces)
+        dispNode.SetSnapMode(slicer.vtkMRMLMarkupsDisplayNode.SnapModeUnconstrained)  
+
+        # 4. Enable occluded‐visibility
+        #    this makes the fiducials remain visible even when they are behind other geometry
+        dispNode.SetOccludedVisibility(True)   
+        #    and you can control how “solid” they appear when occluded
+        dispNode.SetOccludedOpacity(1.0)         # 1.0 = fully opaque when occluded
 
         self.sphereRadius = sphereRadius
 
