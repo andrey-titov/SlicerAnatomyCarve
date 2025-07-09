@@ -34,3 +34,6 @@ AnatomyCarve is a module that allows interactive visualization of 3D medical ima
 # For Developers
 
 In addition to the main volume node, a helper module VolumeTextureIdHelper is present that exposes some internal OpenGL data that is accessed by the main AnatomyCarve module.
+
+# References
+[AnatomyCarve: A VR occlusion management technique for medical images based on segment-aware clipping](https://arxiv.org/abs/2507.05572)
