@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
-    <height>733</height>
+    <width>423</width>
+    <height>929</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -125,17 +125,21 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="renderButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_clippingSphere">
         <property name="text">
-         <string>Render</string>
+         <string>Clipping spheres:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_sphereRadius">
+        <property name="text">
+         <string>Sphere radius:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
        <widget class="ctkSliderWidget" name="sphereRadius">
         <property name="toolTip">
          <string>Sets the radius of the invisible carving sphere.</string>
@@ -154,15 +158,25 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_sphereRadius">
+      <item row="6" column="1">
+       <widget class="QPushButton" name="renderButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
-         <string>Sphere radius:</string>
+         <string>Render</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="2">
+      <item row="8" column="0" colspan="2">
        <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="qSlicerSimpleMarkupsWidget" name="clippingSpheres">
+        <property name="nodeSelectorVisible">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -386,6 +400,17 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerSimpleMarkupsWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qSlicerSimpleMarkupsWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>qMRMLSegmentsTableView</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentsTableView.h</header>
@@ -415,8 +440,8 @@
      <y>132</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>473</y>
+     <x>414</x>
+     <y>509</y>
     </hint>
    </hints>
   </connection>
@@ -431,8 +456,8 @@
      <y>135</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>590</y>
+     <x>437</x>
+     <y>626</y>
     </hint>
    </hints>
   </connection>
@@ -447,8 +472,8 @@
      <y>8</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>619</y>
+     <x>437</x>
+     <y>655</y>
     </hint>
    </hints>
   </connection>
@@ -511,8 +536,8 @@
      <y>86</y>
     </hint>
     <hint type="destinationlabel">
-     <x>118</x>
-     <y>218</y>
+     <x>140</x>
+     <y>430</y>
     </hint>
    </hints>
   </connection>

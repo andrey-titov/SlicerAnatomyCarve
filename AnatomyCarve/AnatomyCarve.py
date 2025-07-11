@@ -148,10 +148,32 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # Buttons
         self.ui.applyButton.connect("clicked(bool)", self.onApplyButton)
         self.ui.renderButton.connect("clicked(bool)", self.onRenderButton)
+        
+        self.setupClippingSphereMarkups()
 
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
+        
+    def setupClippingSphereMarkups(self):
+        # assume you loaded your UI into self.ui
+        clippingSpheres = self.ui.clippingSpheres  # the name you gave in Designer
 
+        # 1. Give it the MRML scene
+        clippingSpheres.setMRMLScene(slicer.mrmlScene)
+
+        # 2. Create (or grab) a fiducial node
+        node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
+        if not node:
+            node = slicer.vtkMRMLMarkupsFiducialNode()
+            node.SetName('MySimpleFiducials')
+            slicer.mrmlScene.AddNode(node)
+
+        # 3. Tell the widget which node to display
+        clippingSpheres.setCurrentNode(node)
+
+        # 4. Enable “place” mode so clicks in the slice add points
+        clippingSpheres.placeActive(False)
+    
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
         self.removeObservers()

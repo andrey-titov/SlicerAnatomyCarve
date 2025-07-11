@@ -15,7 +15,7 @@ from slicer.parameterNodeWrapper import (
     WithinRange,
 )
 
-from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLViewNode
+from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLViewNode, vtkMRMLMarkupsFiducialNode
 
 from OpenGL.GL import *
 
@@ -431,3 +431,4 @@ class AnatomyCarveParameterNode:
     invertThreshold: bool = False
     thresholdedVolume: vtkMRMLScalarVolumeNode
     invertedVolume: vtkMRMLScalarVolumeNode
+    carvingSphere: vtkMRMLMarkupsFiducialNode
