@@ -172,7 +172,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         clippingSpheres.setCurrentNode(node)
 
         # 4. Enable “place” mode so clicks in the slice add points
-        clippingSpheres.placeActive(True)
+        clippingSpheres.placeActive(False)
         
         table = clippingSpheres.tableWidget()
         table.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
