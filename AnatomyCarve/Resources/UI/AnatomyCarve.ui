@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
+    <width>406</width>
     <height>929</height>
    </rect>
   </property>
@@ -173,6 +173,12 @@
       </item>
       <item row="3" column="1">
        <widget class="qSlicerSimpleMarkupsWidget" name="clippingSpheres">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="nodeSelectorVisible">
          <bool>false</bool>
         </property>

@@ -28,7 +28,7 @@ import numpy as np
 from AnatomyCarveLogic.Texture import *
 import vtkSegmentationCorePython as vtkSegmentationCore
 from vtk.util import numpy_support
-
+import qt
 
 
 #
@@ -162,17 +162,21 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         clippingSpheres.setMRMLScene(slicer.mrmlScene)
 
         # 2. Create (or grab) a fiducial node
-        node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
-        if not node:
-            node = slicer.vtkMRMLMarkupsFiducialNode()
-            node.SetName('MySimpleFiducials')
-            slicer.mrmlScene.AddNode(node)
+        #node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
+        #if not node:
+        node = slicer.vtkMRMLMarkupsFiducialNode()
+        node.SetName('Clipping spheres')
+        slicer.mrmlScene.AddNode(node)
 
         # 3. Tell the widget which node to display
         clippingSpheres.setCurrentNode(node)
 
         # 4. Enable “place” mode so clicks in the slice add points
-        clippingSpheres.placeActive(False)
+        clippingSpheres.placeActive(True)
+        
+        table = clippingSpheres.tableWidget()
+        table.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
