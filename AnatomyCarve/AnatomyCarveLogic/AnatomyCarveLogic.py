@@ -134,12 +134,12 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         renderWindow = slicer.app.layoutManager().threeDWidget(self.context.getViewIndex()).threeDView().renderWindow()
 
         glUseProgram(shader.program)
-        glBindImageTexture(0, self.context.labelVolume.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelVolume.internalformat)
-        glBindImageTexture(1, self.context.labelToColorMap.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelToColorMap.internalformat)
-        glBindImageTexture(2, self.context.outputVolume.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.context.outputVolume.internalformat)
+        glBindImageTexture(0, self.context.labelVolumeTex3d.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelVolumeTex3d.internalformat)
+        glBindImageTexture(1, self.context.labelToColorMapTex2d.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelToColorMapTex2d.internalformat)
+        glBindImageTexture(2, self.context.outputVolumeTex3d.textureId, 0, GL_TRUE, 0, GL_WRITE_ONLY, self.context.outputVolumeTex3d.internalformat)
         glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
-        glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.context.labelToColorMap.dims[0])
-        shader.dispatch(self.context.outputVolume.dims)
+        glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.context.labelToColorMapTex2d.dims[0])
+        shader.dispatch(self.context.outputVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
     def applyCarveVoxelsComputeShader(self):
@@ -153,7 +153,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         shader = self.shaderCarveVoxels
 
         modelMatrix = vtk.vtkMatrix4x4()
-        self.context.outputVolumeNode.GetIJKToRASMatrix(modelMatrix)
+        self.context.outputVolume.GetIJKToRASMatrix(modelMatrix)
 
         gl_mat = np.zeros(16, dtype=np.float32)
 
@@ -171,11 +171,11 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.sphereRadius)
         glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
-        glBindImageTexture(0, self.context.outputVolume.textureId, 0, GL_TRUE, 0, GL_READ_WRITE,  self.context.outputVolume.internalformat)
-        glBindImageTexture(1, self.context.labelVolume.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelVolume.internalformat)
-        glBindImageTexture(2, self.context.intensityVolume.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.intensityVolume.internalformat)
+        glBindImageTexture(0, self.context.outputVolumeTex3d.textureId, 0, GL_TRUE, 0, GL_READ_WRITE,  self.context.outputVolumeTex3d.internalformat)
+        glBindImageTexture(1, self.context.labelVolumeTex3d.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.labelVolumeTex3d.internalformat)
+        glBindImageTexture(2, self.context.intensityVolumeTex3d.textureId, 0, GL_TRUE, 0, GL_READ_ONLY, self.context.intensityVolumeTex3d.internalformat)
 
-        shader.dispatch(self.context.outputVolume.dims)
+        shader.dispatch(self.context.outputVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
     def createClipMask(self):

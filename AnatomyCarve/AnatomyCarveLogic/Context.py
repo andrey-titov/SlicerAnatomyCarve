@@ -15,16 +15,16 @@ from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLView
 import vtkSegmentationCorePython as vtkSegmentationCore
 
 class Context:
-    def __init__(self, intensityVolumeNode: vtkMRMLScalarVolumeNode, 
+    def __init__(self, intensityVolume: vtkMRMLScalarVolumeNode, 
                  segmentation: vtkMRMLSegmentationNode, 
                  view: vtkMRMLViewNode) -> None:
-        self.intensityVolumeNode = intensityVolumeNode
+        self.intensityVolume = intensityVolume
         self.segmentation = segmentation
         self.view = view
-        self.labelToColorMap = self.createLabelToColorMap()
-        self.outputVolumeNode, self.outputVolume = self.createVectorVolume()
-        self.labelVolume = self.createLabelVolume()
-        self.intensityVolume = Texture.fromVolumeNode(intensityVolumeNode, GL_R32F, GL_RED, GL_FLOAT)
+        self.labelToColorMapTex2d = self.createLabelToColorMap()
+        self.outputVolume, self.outputVolumeTex3d = self.createVectorVolume()
+        self.labelVolumeTex3d = self.createLabelVolume()
+        self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT)
 
     def createLabelToColorMap(self) -> Texture:
         #segNode = self.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -85,7 +85,7 @@ class Context:
     def createVectorVolume(self) -> Tuple[vtkMRMLVectorVolumeNode, Texture]:
         #intensityVolume = self.getParameterNode().intensityVolume
         
-        dims = self.intensityVolumeNode.GetImageData().GetDimensions() 
+        dims = self.intensityVolume.GetImageData().GetDimensions() 
         
         dims = dims[::-1]
         
@@ -94,7 +94,7 @@ class Context:
         arrayR = np.zeros(dims, dtype=np.float32)
         arrayG = np.ones(dims, dtype=np.float32)
         arrayB = np.ones(dims, dtype=np.float32)        
-        arrayA = slicer.util.arrayFromVolume(self.intensityVolumeNode).astype(np.float32) #np.ones(dims, dtype=np.uint8)
+        arrayA = slicer.util.arrayFromVolume(self.intensityVolume).astype(np.float32) #np.ones(dims, dtype=np.uint8)
 
         arrayRGBA = np.stack((arrayR, arrayG, arrayB, arrayA), axis=-1)
         
@@ -104,22 +104,22 @@ class Context:
         #print(arrayRGBA.shape)
         
         # Create new volume node
-        rgbaVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
-        slicer.util.updateVolumeFromArray(rgbaVolume, arrayRGBA)
+        outputVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
+        slicer.util.updateVolumeFromArray(outputVolume, arrayRGBA)
 
         # Copy geometry (origin, spacing, matrix)
-        rgbaVolume.SetOrigin(self.intensityVolumeNode.GetOrigin())
-        rgbaVolume.SetSpacing(self.intensityVolumeNode.GetSpacing())
+        outputVolume.SetOrigin(self.intensityVolume.GetOrigin())
+        outputVolume.SetSpacing(self.intensityVolume.GetSpacing())
         matrix = vtk.vtkMatrix4x4()
-        self.intensityVolumeNode.GetIJKToRASMatrix(matrix)
-        rgbaVolume.SetIJKToRASMatrix(matrix)
+        self.intensityVolume.GetIJKToRASMatrix(matrix)
+        outputVolume.SetIJKToRASMatrix(matrix)
 
         # Show in slice view
-        slicer.util.setSliceViewerLayers(background=rgbaVolume)
+        slicer.util.setSliceViewerLayers(background=outputVolume)
 
         # Optional: enable volume rendering
         volRenLogic = slicer.modules.volumerendering.logic()
-        displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(rgbaVolume)
+        displayNode = volRenLogic.CreateDefaultVolumeRenderingNodes(outputVolume)
         displayNode.SetVisibility(True)
         #displayNode.GetVolumePropertyNode().GetVolumeProperty().SetIndependentComponents(0)
         
@@ -160,12 +160,12 @@ class Context:
         # else:
         #     print("ViewNode is not currently in any visible 3D view.")
         
-        textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(rgbaVolume, viewIndex)
+        textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(outputVolume, viewIndex)
         self.visibleTextureId = textureId
         #self.rgbaVolume = rgbaVolume
 
         #print(textureId)
-        return rgbaVolume, Texture.fromOpenGLTexture(textureId, self.intensityVolumeNode.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
+        return outputVolume, Texture.fromOpenGLTexture(textureId, self.intensityVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
     
     def createLabelVolume(self) -> Texture:
         # # 1. Get your segmentation node (by name, or just grab the first one)
