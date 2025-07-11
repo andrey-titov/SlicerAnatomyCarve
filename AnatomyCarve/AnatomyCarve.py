@@ -177,6 +177,11 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         table = clippingSpheres.tableWidget()
         table.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        
+        self.ui.clippingSpheres.currentMarkupsControlPointSelectionChanged.connect(self.onPointSelected)
+        
+    def onPointSelected(self, index):
+        print(index)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
