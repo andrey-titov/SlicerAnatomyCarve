@@ -7,6 +7,8 @@ import vtk
 
 import numpy as np
 
+from AnatomyCarveLogic.Texture import *
+
 import slicer
 from slicer.i18n import tr as _
 from slicer.i18n import translate
@@ -49,6 +51,9 @@ class ComputeShader:
             print(glGetProgramInfoLog(prog))
             raise RuntimeError("Shader program failed to link.")
         return prog
+    
+    def bindTexture(self, unit: int, texture: Texture, access: int):
+        glBindImageTexture(unit, texture.textureId, 0, GL_TRUE, 0, access, texture.internalformat)
     
     def dispatch(self, threadSizeXYZ: tuple[int,int,int]):
         # Assume `program` is your linked compute shader program (GLuint)
