@@ -3,6 +3,7 @@ import os
 import slicer
 import numpy as np
 from AnatomyCarveLogic.Texture import *
+from AnatomyCarveLogic.Mask import *
 
 from OpenGL.GL import *
 
@@ -13,6 +14,7 @@ from typing import Tuple
 
 from slicer import vtkMRMLScalarVolumeNode, vtkMRMLSegmentationNode, vtkMRMLViewNode, vtkMRMLMarkupsFiducialNode, vtkMRMLVectorVolumeNode
 import vtkSegmentationCorePython as vtkSegmentationCore
+
 
 class Context:
     def __init__(self, intensityVolume: vtkMRMLScalarVolumeNode, 
@@ -25,6 +27,7 @@ class Context:
         self.outputVolume, self.outputVolumeTex3d = self.createVectorVolume()
         self.labelVolumeTex3d = self.createLabelVolume()
         self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT)
+        self.mask = Mask(segmentation)
 
     def createLabelToColorMap(self) -> Texture:
         #segNode = self.getParameterNode().segmentation           # or your node’s exact name/ID

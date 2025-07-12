@@ -9,9 +9,6 @@ uniform vec4 sphereDetails;
 // the model matrix of the color volume 
 uniform mat4 modelMatrix;
 
-// Array of in values where 0 is false and 1 is true that dictates whether or not the label is visible
-uniform int clipMask[256];
-
 // binding 0: output coloured volume (8-bit RGBA image)
 layout(binding = 0, rgba32f) uniform image3D colorVolume;
 
@@ -20,6 +17,9 @@ layout(binding = 1, r32i) readonly uniform iimage3D labelMap;
 
 // binding 2: 
 layout(binding = 2, r32f) readonly uniform image3D intensityVolume;
+
+// Array of in values where 0 is false and 1 is true that dictates whether or not the label is visible
+layout(binding = 3, r32i) readonly uniform iimage2D mask;
 
 void main() {
     ivec3 dimensions = imageSize(colorVolume);
@@ -45,7 +45,7 @@ void main() {
     
     vec4 color = imageLoad(colorVolume, coord);
 
-    int clippable = clipMask[label];
+    int clippable = imageLoad(mask, ivec2(label, 0)).r;
 
     float intensity = imageLoad(intensityVolume, coord).r;
 

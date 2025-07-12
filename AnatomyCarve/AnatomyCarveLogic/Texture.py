@@ -82,3 +82,19 @@ class Texture:
             glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, *self.dims, self.format, self.type, data.ravel())
         else:
             logging.error(f"Arrays of dimension {len(data.shape)} are not supported")
+
+    def updateRow2d(self, rowIndex: int, newRow: np.ndarray):
+        glBindTexture(GL_TEXTURE_2D, self.textureId)
+
+        # Set unpack alignment to 1 to avoid issues with row padding
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+        glTexSubImage2D(
+            GL_TEXTURE_2D,
+            0,                     # mipmap level
+            0, rowIndex,      # xoffset, yoffset
+            newRow[0], 1,      # width, height
+            self.format,                # format (single channel)
+            self.type,      # type
+            newRow.ravel()               # numpy array with shape (width,)
+        )

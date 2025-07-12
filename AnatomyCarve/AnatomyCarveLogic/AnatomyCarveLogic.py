@@ -163,52 +163,53 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
         spherePos = [0.0,0.0,0.0]
         self.carvingSphere.GetNthControlPointPosition(0, spherePos)
-        self.createClipMask()
+        self.context.mask.update()
 
         # print(self.clipMask.shape[0])
 
         glUseProgram(shader.program)
         glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.sphereRadius)
-        glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
+        #glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         shader.bindTexture(0, self.context.outputVolumeTex3d, GL_READ_WRITE)
         shader.bindTexture(1, self.context.labelVolumeTex3d, GL_READ_ONLY)
         shader.bindTexture(2, self.context.intensityVolumeTex3d, GL_READ_ONLY)
+        shader.bindTexture(3, self.context.mask.texture, GL_READ_ONLY)
 
         shader.dispatch(self.context.outputVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
-    def createClipMask(self):
-        # Get the currently selected segmentation node
-        segmentationNode = self.getParameterNode().segmentation  # Replace with your actual node name if needed
+    # def createClipMask(self):
+    #     # Get the currently selected segmentation node
+    #     segmentationNode = self.getParameterNode().segmentation  # Replace with your actual node name if needed
         
-        segmentation = segmentationNode.GetSegmentation()
-        displayNode = segmentationNode.GetDisplayNode()
-        segmentIDs = segmentation.GetSegmentIDs()  
+    #     segmentation = segmentationNode.GetSegmentation()
+    #     displayNode = segmentationNode.GetDisplayNode()
+    #     segmentIDs = segmentation.GetSegmentIDs()  
 
-        # segmentInfoArray = []
+    #     # segmentInfoArray = []
 
-        maxLabel = max(
-            segmentation.GetSegment(segID).GetLabelValue() # vtkSegment::GetLabelValue 
-            for segID in segmentIDs
-        )
+    #     maxLabel = max(
+    #         segmentation.GetSegment(segID).GetLabelValue() # vtkSegment::GetLabelValue 
+    #         for segID in segmentIDs
+    #     )
 
-        self.clipMask = np.zeros((maxLabel + 1))
+    #     self.clipMask = np.zeros((maxLabel + 1))
 
-        for i in range(segmentation.GetNumberOfSegments()):
-            segmentID = segmentation.GetNthSegmentID(i)
-            # segment = segmentation.GetSegment(segmentID)
-            isVisible = displayNode.GetSegmentVisibility(segmentID)
-            labelValue = i + 1
-            self.clipMask[labelValue] = 1 if bool(isVisible) else 0
+    #     for i in range(segmentation.GetNumberOfSegments()):
+    #         segmentID = segmentation.GetNthSegmentID(i)
+    #         # segment = segmentation.GetSegment(segmentID)
+    #         isVisible = displayNode.GetSegmentVisibility(segmentID)
+    #         labelValue = i + 1
+    #         self.clipMask[labelValue] = 1 if bool(isVisible) else 0
 
-        self.clipMask = self.clipMask.astype(np.int32)
+    #     self.clipMask = self.clipMask.astype(np.int32)
 
-        # print(self.clipMask)
+    #     # print(self.clipMask)
 
-        # # Example output
-        # for entry in segmentInfoArray:
-        #     print(entry)
+    #     # # Example output
+    #     # for entry in segmentInfoArray:
+    #     #     print(entry)
 
 #
 # AnatomyCarveParameterNode
