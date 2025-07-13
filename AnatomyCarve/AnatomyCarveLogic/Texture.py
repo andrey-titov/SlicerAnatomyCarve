@@ -87,13 +87,13 @@ class Texture:
         glBindTexture(GL_TEXTURE_2D, self.textureId)
 
         # Set unpack alignment to 1 to avoid issues with row padding
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        #glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
 
         glTexSubImage2D(
             GL_TEXTURE_2D,
             0,                     # mipmap level
             0, rowIndex,      # xoffset, yoffset
-            newRow[0], 1,      # width, height
+            newRow.shape[0], 1,      # width, height
             self.format,                # format (single channel)
             self.type,      # type
             newRow.ravel()               # numpy array with shape (width,)
