@@ -10,19 +10,21 @@ uniform vec4 sphereDetails;
 uniform mat4 modelMatrix;
 
 // binding 0: output coloured volume (8-bit RGBA image)
-layout(binding = 0, rgba32f) uniform image3D colorVolume;
+layout(binding = 0, rgba32f) uniform writeonly image3D outputVolume;
 
 // binding 1: input label map (unsigned integer 3D image)
-layout(binding = 1, r32i) readonly uniform iimage3D labelMap;
+layout(binding = 1, r32i) uniform readonly iimage3D labelMap;
 
 // binding 2: 
-layout(binding = 2, r32f) readonly uniform image3D intensityVolume;
+layout(binding = 2, r32f) uniform readonly image3D intensityVolume;
 
 // Array of in values where 0 is false and 1 is true that dictates whether or not the label is visible
-layout(binding = 3, r32i) readonly uniform iimage2D mask;
+layout(binding = 3, r32i) uniform readonly iimage2D mask;
+
+layout(binding = 4, rgba8) uniform readonly image3D colorVolume;
 
 void main() {
-    ivec3 dimensions = imageSize(colorVolume);
+    ivec3 dimensions = imageSize(outputVolume);
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
 
     if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z)
@@ -35,6 +37,7 @@ void main() {
 
     if (label == 0)
     {
+        imageStore(outputVolume, coord, vec4(0, 0, 0, 0));
         return;
     }
 
@@ -60,5 +63,5 @@ void main() {
         color.a = intensity;
     }
 
-    imageStore(colorVolume, coord, color);
+    imageStore(outputVolume, coord, color);
 }

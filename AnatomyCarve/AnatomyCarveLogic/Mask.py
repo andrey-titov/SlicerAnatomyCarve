@@ -47,6 +47,6 @@ class Mask:
             labelValue = i + 1
             rowMask[labelValue] = 1 if bool(isVisible) else 0
 
-        print(rowMask)
+        # print(rowMask)
 
         self.texture.updateRow2d(self.sphereCount - 1, rowMask)

@@ -4,13 +4,13 @@
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 // binding 0: input label map (unsigned integer 3D image)
-layout(binding = 0, r32i) readonly uniform iimage3D labelMap;
+layout(binding = 0, r32i) uniform readonly iimage3D labelMap;
 
 // binding 1: colour map, stored as a 2D texture of size (colorMapSize × 1)
-layout(binding = 1, rgba8) readonly uniform image2D colorMap;
+layout(binding = 1, rgba8) uniform readonly image2D colorMap;
 
 // binding 2: output coloured volume (8-bit RGBA image)
-layout(binding = 2, rgba32f) writeonly uniform image3D colorVolume;
+layout(binding = 2, rgba8) uniform writeonly image3D colorVolume;
 
 // how many entries in the colour map
 uniform int colorMapSize; 

@@ -17,17 +17,20 @@ import vtkSegmentationCorePython as vtkSegmentationCore
 
 
 class Context:
+    COLOR_NUM_COMPONENTS = 4
+
     def __init__(self, intensityVolume: vtkMRMLScalarVolumeNode, 
                  segmentation: vtkMRMLSegmentationNode, 
                  view: vtkMRMLViewNode) -> None:
         self.intensityVolume = intensityVolume
         self.segmentation = segmentation
         self.view = view
-        self.labelToColorMapTex2d = self.createLabelToColorMap()
+        self.labelToColorMapTex2d = self.createLabelToColorMap()        
         self.outputVolume, self.outputVolumeTex3d = self.createVectorVolume()
         self.labelVolumeTex3d = self.createLabelVolume()
         self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT)
         self.mask = Mask(segmentation)
+        self.labelToColorVolumeTex3d = Texture.fromArray(np.zeros(self.outputVolumeTex3d.dims + (self.COLOR_NUM_COMPONENTS,), dtype=np.uint8), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
 
     def createLabelToColorMap(self) -> Texture:
         #segNode = self.getParameterNode().segmentation           # or your node’s exact name/ID
@@ -54,9 +57,7 @@ class Context:
             for segID in segmentIDs
         )
 
-        NUM_COMPONENTS = 4
-
-        colorMap = np.zeros((maxLabel + 1, 1, NUM_COMPONENTS))
+        colorMap = np.zeros((maxLabel + 1, 1, self.COLOR_NUM_COMPONENTS))
 
         for label in labelColorMapping:
             colorMap[label, 0, 0] = labelColorMapping[label][0]

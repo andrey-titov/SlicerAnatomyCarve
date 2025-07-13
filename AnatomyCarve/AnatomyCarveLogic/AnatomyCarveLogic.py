@@ -136,10 +136,11 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         glUseProgram(shader.program)
         shader.bindTexture(0, self.context.labelVolumeTex3d, GL_READ_ONLY)
         shader.bindTexture(1, self.context.labelToColorMapTex2d, GL_READ_ONLY)
-        shader.bindTexture(2, self.context.outputVolumeTex3d, GL_WRITE_ONLY)
+        shader.bindTexture(2, self.context.labelToColorVolumeTex3d, GL_WRITE_ONLY)
         glUniform1f(glGetUniformLocation(shader.program, "scale"), 0.00025)
         glUniform1i(glGetUniformLocation(shader.program, "colorMapSize"), self.context.labelToColorMapTex2d.dims[0])
-        shader.dispatch(self.context.outputVolumeTex3d.dims)
+        # print(self.context.labelToColorVolumeTex3d.dims)
+        shader.dispatch(self.context.labelToColorVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
     def applyCarveVoxelsComputeShader(self):
@@ -175,8 +176,9 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         shader.bindTexture(1, self.context.labelVolumeTex3d, GL_READ_ONLY)
         shader.bindTexture(2, self.context.intensityVolumeTex3d, GL_READ_ONLY)
         shader.bindTexture(3, self.context.mask.texture, GL_READ_ONLY)
+        shader.bindTexture(4, self.context.labelToColorVolumeTex3d, GL_READ_ONLY)
 
-        shader.dispatch(self.context.outputVolumeTex3d.dims)
+        shader.dispatch(self.context.labelToColorVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
 
     # def createClipMask(self):
