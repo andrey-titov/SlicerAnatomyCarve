@@ -15,7 +15,7 @@ from slicer.parameterNodeWrapper import (
     WithinRange,
 )
 
-from slicer import vtkMRMLScalarVolumeNode
+from slicer import vtkMRMLScalarVolumeNode, vtkMRMLMarkupsFiducialNode, vtkMRMLMarkupsNode
 
 try:
     from OpenGL.GL import *
@@ -164,9 +164,13 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # 2. Create (or grab) a fiducial node
         #node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
         #if not node:
-        node = slicer.vtkMRMLMarkupsFiducialNode()
-        node.SetName('Clipping spheres')
-        slicer.mrmlScene.AddNode(node)
+        node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Clipping sphere")
+        
+        # node = vtkMRMLMarkupsFiducialNode()
+        # node.SetName('Clipping sphere')
+        # slicer.mrmlScene.AddNode(node)
+        #node.CreateDefaultDisplayNodes()
+        
 
         # 3. Tell the widget which node to display
         clippingSpheres.setCurrentNode(node)
@@ -179,9 +183,32 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         
         self.ui.clippingSpheres.currentMarkupsControlPointSelectionChanged.connect(self.onPointSelected)
+
+        node.AddObserver(vtkMRMLMarkupsNode.PointAddedEvent , self.onPointEvent)
+        node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointEvent)
+        
+        #node.AddObserver(vtkMRMLMarkupsNode.FixedNumberOfControlPointsModifiedEvent , self.onPointEvent)
+        node.AddControlPoint([0.0, 0.0, 0.0])
+
+
+    def onPointEvent(self, caller, eventId, callData=None):
+        # if callData is None you can fall back to e.g. GetNumberOfControlPoints()-1
+        idx = int(callData) if callData is not None else None
+
+        if eventId == vtkMRMLMarkupsNode.PointAddedEvent:
+            print(f"Point added at index {idx}")
+        elif eventId == vtkMRMLMarkupsNode.PointRemovedEvent:
+            print(f"Point removed at index {idx}")
+        else:
+            # you’ll now see other event IDs (or 0 if something else is calling you)
+            print("Other event:", eventId)
+            n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
+            print("Resynced cache:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
+            
         
     def onPointSelected(self, index):
         print(index)
+        slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
