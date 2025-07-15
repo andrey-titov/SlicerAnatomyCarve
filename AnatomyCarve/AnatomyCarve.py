@@ -199,16 +199,16 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.tagPointRemovedEvent = node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointRemovedEvent)
 
     def onPointAddedEvent(self, caller, eventId, callData=None):
-        n = caller.GetNumberOfControlPoints()
-        updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        self.logic.addLastClippingSphere(updatedPoints)
+        # n = caller.GetNumberOfControlPoints()
+        # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
+        self.logic.addLastClippingSphere(self.ui.sphereRadius.value)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
         #print("onPointAddedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointID(i)) for i in range(n)])
         
     def onPointRemovedEvent(self, caller, eventId, callData=None):
-        n = caller.GetNumberOfControlPoints()
-        updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        self.logic.removeLastClippingSphere(updatedPoints)
+        # n = caller.GetNumberOfControlPoints()
+        # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
+        self.logic.removeLastClippingSphere()
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
         # print("onPointRemovedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
             
@@ -326,7 +326,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """Run processing when user clicks "Apply" button."""
         with slicer.util.tryWithErrorDisplay(_("Failed to start rendering."), waitCursor=True):
             self.setupClippingSphereMarkups()
-            self.logic.startRender(self.ui.sphereRadius.value, self.clippingSpheresNode)
+            self.logic.startRender(self.clippingSpheresNode)
 
 
 

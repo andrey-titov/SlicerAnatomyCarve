@@ -1,10 +1,12 @@
 #version 430
 
+#define MAX_SPHERES 32
+
 // work‐group size; tune to your GPU and volume size
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 // the sphere details which do the carving. x,y,z are typical position and the w is the radius
-uniform vec4 sphereDetails;
+uniform vec4 sphereDetails[MAX_SPHERES];
 
 // the model matrix of the color volume 
 uniform mat4 modelMatrix;
@@ -22,6 +24,7 @@ layout(binding = 2, r32f) uniform readonly image3D intensityVolume;
 layout(binding = 3, r32i) uniform readonly iimage2D mask;
 
 layout(binding = 4, rgba8) uniform readonly image3D colorVolume;
+
 
 void main() {
     ivec3 dimensions = imageSize(outputVolume);
@@ -44,7 +47,7 @@ void main() {
     vec4 threeDPoint = modelMatrix * vec4(gl_GlobalInvocationID.xyz, 1.0);
     vec3 pos = (threeDPoint / threeDPoint.w).xyz;
     
-    float distanceToSphere = length(pos - sphereDetails.xyz);
+    float distanceToSphere = length(pos - sphereDetails[0].xyz);
     
     vec4 color = imageLoad(colorVolume, coord);
 
@@ -54,7 +57,7 @@ void main() {
 
     // intensity = (intensity - -1074.0) / (3291.0 - -1074.0);
 
-    if (distanceToSphere <= sphereDetails.w && clippable == 0)
+    if (distanceToSphere <= sphereDetails[0].w && clippable == 0)
     {
         color.a = 0.0;    
     }

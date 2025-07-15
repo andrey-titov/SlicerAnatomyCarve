@@ -83,27 +83,31 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         stopTime = time.time()
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
 
-    def startRender(self, sphereRadius, clippingSpheresNode: vtkMRMLMarkupsFiducialNode) -> None:
+    def startRender(self, clippingSpheresNode: vtkMRMLMarkupsFiducialNode) -> None:
         self.node: AnatomyCarveParameterNode = self.getParameterNode()
         self.clippingSpheresNode = clippingSpheresNode
 
         self.context = Context(self.node.intensityVolume, self.node.segmentation, self.node.view)
 
-        self.addInitialClippingSphere(sphereRadius)
+        self.addInitialClippingSphere()
         
         self.applyFillColorComputeShader()
         self.applyCarveVoxelsComputeShader()
 
 
-    def addLastClippingSphere(self, updatedPoints):
+    def addLastClippingSphere(self, sphereRadius: int):
         #print(updatedPoints)
         print(self.context.mask.texture.readRow2d(0))
+        
+        lastIndex = self.clippingSpheresNode.GetNumberOfControlPoints() - 1
+        self.sphereRadiuses[self.clippingSpheresNode.GetNthControlPointID(lastIndex)] = sphereRadius
         self.context.mask.addSphere()
 
-    def removeLastClippingSphere(self, updatedPoints):
-        print(updatedPoints)
+    def removeLastClippingSphere(self):
+        pass
+        #print(updatedPoints)
     
-    def addInitialClippingSphere(self, sphereRadius):
+    def addInitialClippingSphere(self):
         # Create a new fiducial list
         #carvingSphere = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Carving Sphere")
 
@@ -111,6 +115,8 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         #dispNode = carvingSphere.GetDisplayNode()
 
         # Add a fiducial at (x, y, z)
+        self.sphereRadiuses = dict()
+        
         self.clippingSpheresNode.AddControlPoint([0.0, 0.0, 0.0]) # Coordinates in RAS
         
         # n = self.clippingSpheresNode.GetNumberOfControlPoints()
@@ -126,7 +132,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         # #    and you can control how “solid” they appear when occluded
         # dispNode.SetOccludedOpacity(1.0)         # 1.0 = fully opaque when occluded
 
-        self.sphereRadius = sphereRadius
+        #self.sphereRadius = sphereRadius
 
         # print(f"Sphere radius: {self.ui.sphereRadius.value}")
 
@@ -171,14 +177,23 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
             for row in range(4):
                 gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
 
-        spherePos = [0.0,0.0,0.0]
-        self.clippingSpheresNode.GetNthControlPointPosition(0, spherePos)
+        sphereDetailsArray = []
+        for i in range(self.clippingSpheresNode.GetNumberOfControlPoints()):
+            spherePosRadius = [0.0,0.0,0.0]
+            self.clippingSpheresNode.GetNthControlPointPosition(i, spherePosRadius)
+            spherePosRadius.append(self.sphereRadiuses[self.clippingSpheresNode.GetNthControlPointID(i)])
+            sphereDetailsArray.append(spherePosRadius)
+        
+        sphereDetails = np.array(sphereDetailsArray, dtype=np.float32)
+        
         self.context.mask.update()
+        
+        #self.context.mask.texture.readRow2d(0)
 
         # print(self.clipMask.shape[0])
 
         glUseProgram(shader.program)
-        glUniform4f(glGetUniformLocation(shader.program, "sphereDetails"), spherePos[0], spherePos[1], spherePos[2], self.sphereRadius)
+        glUniform4fv(glGetUniformLocation(shader.program, "sphereDetails"), 32, sphereDetails)
         #glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         shader.bindTexture(0, self.context.outputVolumeTex3d, GL_READ_WRITE)
