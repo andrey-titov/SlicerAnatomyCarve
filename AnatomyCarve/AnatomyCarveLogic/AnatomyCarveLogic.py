@@ -97,7 +97,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
     def addLastClippingSphere(self, sphereRadius: int):
         #print(updatedPoints)
-        print(self.context.mask.texture.readRow2d(0))
+        # print(self.context.mask.texture.readRow2d(0))
         
         lastIndex = self.clippingSpheresNode.GetNumberOfControlPoints() - 1
         self.sphereRadiuses[self.clippingSpheresNode.GetNthControlPointID(lastIndex)] = sphereRadius
@@ -194,6 +194,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
         glUseProgram(shader.program)
         glUniform4fv(glGetUniformLocation(shader.program, "sphereDetails"), 32, sphereDetails)
+        glUniform1i(glGetUniformLocation(shader.program, "sphereCount"), self.context.mask.sphereCount)
         #glUniform1iv(glGetUniformLocation(shader.program, "clipMask"), self.clipMask.shape[0], self.clipMask)
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "modelMatrix"), 1, GL_FALSE, gl_mat)
         shader.bindTexture(0, self.context.outputVolumeTex3d, GL_READ_WRITE)
