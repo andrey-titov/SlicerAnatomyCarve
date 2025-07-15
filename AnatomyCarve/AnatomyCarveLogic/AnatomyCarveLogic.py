@@ -94,8 +94,11 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         self.applyCarveVoxelsComputeShader()
 
 
+    def addLastClippingSphere(self, updatedPoints):
+        print(updatedPoints)
 
-
+    def removeLastClippingSphere(self, updatedPoints):
+        print(updatedPoints)
     
     def addCarvingSphere(self, sphereRadius):
         # Create a new fiducial list
