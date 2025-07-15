@@ -40,6 +40,7 @@ class Mask:
         
         # for x in range(self.texture.dims[0]):
         #     pass
+        #print(self.texture.readRow2d(0))
         
     def removeSphere(self):
         if self.sphereCount <= 0:
@@ -47,8 +48,10 @@ class Mask:
         
         self.sphereCount -= 1
         
-        if (self.sphereCount >= 1):
-            pass
+        if (self.sphereCount <= 0):
+            return
+        
+        
             
 
     def update(self):
@@ -72,5 +75,5 @@ class Mask:
             rowMask[labelValue] = 1 if bool(isVisible) else 0
 
         # print(rowMask)
-
-        self.texture.updateRow2d(self.sphereCount - 1, rowMask)
+        if self.sphereCount >= 1:
+            self.texture.updateRow2d(self.sphereCount - 1, rowMask)

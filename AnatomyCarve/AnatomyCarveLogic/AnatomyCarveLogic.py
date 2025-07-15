@@ -83,42 +83,48 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         stopTime = time.time()
         logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
 
-    def startRender(self, sphereRadius) -> None:
+    def startRender(self, sphereRadius, clippingSpheresNode: vtkMRMLMarkupsFiducialNode) -> None:
         self.node: AnatomyCarveParameterNode = self.getParameterNode()
+        self.clippingSpheresNode = clippingSpheresNode
 
         self.context = Context(self.node.intensityVolume, self.node.segmentation, self.node.view)
 
-        self.addCarvingSphere(sphereRadius)
+        self.addInitialClippingSphere(sphereRadius)
         
         self.applyFillColorComputeShader()
         self.applyCarveVoxelsComputeShader()
 
 
     def addLastClippingSphere(self, updatedPoints):
-        print(updatedPoints)
+        #print(updatedPoints)
+        print(self.context.mask.texture.readRow2d(0))
+        self.context.mask.addSphere()
 
     def removeLastClippingSphere(self, updatedPoints):
         print(updatedPoints)
     
-    def addCarvingSphere(self, sphereRadius):
+    def addInitialClippingSphere(self, sphereRadius):
         # Create a new fiducial list
-        carvingSphere = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Carving Sphere")
+        #carvingSphere = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Carving Sphere")
 
         # 2. Grab its display node
-        dispNode = carvingSphere.GetDisplayNode()
+        #dispNode = carvingSphere.GetDisplayNode()
 
         # Add a fiducial at (x, y, z)
-        carvingSphere.AddControlPoint([0.0, 0.0, 0.0]) # Coordinates in RAS
+        self.clippingSpheresNode.AddControlPoint([0.0, 0.0, 0.0]) # Coordinates in RAS
+        
+        # n = self.clippingSpheresNode.GetNumberOfControlPoints()
+        # self.addLastClippingSphere([tuple(self.clippingSpheresNode.GetNthControlPointID(i)) for i in range(n)])
 
-        # 3. Disable all snapping
-        #    this sets SnapMode → SnapModeUnconstrained (no snapping to surfaces)
-        dispNode.SetSnapMode(slicer.vtkMRMLMarkupsDisplayNode.SnapModeUnconstrained)  
+        # # 3. Disable all snapping
+        # #    this sets SnapMode → SnapModeUnconstrained (no snapping to surfaces)
+        # dispNode.SetSnapMode(slicer.vtkMRMLMarkupsDisplayNode.SnapModeUnconstrained)  
 
-        # 4. Enable occluded‐visibility
-        #    this makes the fiducials remain visible even when they are behind other geometry
-        dispNode.SetOccludedVisibility(True)   
-        #    and you can control how “solid” they appear when occluded
-        dispNode.SetOccludedOpacity(1.0)         # 1.0 = fully opaque when occluded
+        # # 4. Enable occluded‐visibility
+        # #    this makes the fiducials remain visible even when they are behind other geometry
+        # dispNode.SetOccludedVisibility(True)   
+        # #    and you can control how “solid” they appear when occluded
+        # dispNode.SetOccludedOpacity(1.0)         # 1.0 = fully opaque when occluded
 
         self.sphereRadius = sphereRadius
 
@@ -127,7 +133,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         # # Optionally change display settings
         # displayNode = fiducialsNode.GetDisplayNode()
         # displayNode.SetTextScale(1.5)
-        self.carvingSphere = carvingSphere
+        # self.carvingSphere = carvingSphere
 
     def applyFillColorComputeShader(self):
         
@@ -166,7 +172,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
                 gl_mat[col * 4 + row] = modelMatrix.GetElement(row, col)
 
         spherePos = [0.0,0.0,0.0]
-        self.carvingSphere.GetNthControlPointPosition(0, spherePos)
+        self.clippingSpheresNode.GetNthControlPointPosition(0, spherePos)
         self.context.mask.update()
 
         # print(self.clipMask.shape[0])

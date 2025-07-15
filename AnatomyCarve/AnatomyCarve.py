@@ -151,7 +151,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.applyButton.connect("clicked(bool)", self.onApplyButton)
         self.ui.renderButton.connect("clicked(bool)", self.onRenderButton)
         
-        self.setupClippingSphereMarkups()
+        #self.setupClippingSphereMarkups()
 
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
@@ -325,7 +325,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onRenderButton(self) -> None:
         """Run processing when user clicks "Apply" button."""
         with slicer.util.tryWithErrorDisplay(_("Failed to start rendering."), waitCursor=True):
-            self.logic.startRender(self.ui.sphereRadius.value)
+            self.setupClippingSphereMarkups()
+            self.logic.startRender(self.ui.sphereRadius.value, self.clippingSpheresNode)
 
 
 

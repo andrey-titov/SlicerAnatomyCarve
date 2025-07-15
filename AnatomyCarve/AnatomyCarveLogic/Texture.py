@@ -98,3 +98,37 @@ class Texture:
             self.type,      # type
             newRow.ravel()               # numpy array with shape (width,)
         )
+        
+    def readRow2d(self, rowIndex: int):
+        glBindTexture(GL_TEXTURE_2D, self.textureId)
+        
+        # 3. Pull back the data as raw bytes
+        rawData = glGetTexImage(GL_TEXTURE_2D, 0, self.format, self.type)
+        
+        # glGetTexSubImage(
+        #     GL_TEXTURE_2D,
+        #     0,
+        #     0,            # xoffset
+        #     rowIndex,    # yoffset: which row
+        #     0,            # zoffset, for 2D textures always 0
+        #     self.dims[1],    # width to read
+        #     1,            # height = 1 row
+        #     1,            # depth = 1 slice
+        #     self.format,
+        #     self.type,
+        #     row
+        # )
+
+        # 4. Convert to a NumPy array and reshape: (height, width, 4)
+        image = np.frombuffer(rawData, dtype=np.int32)
+        image = image.reshape((self.dims[1], self.dims[0]))
+
+        # 5. (Optional) Flip vertically if you want row‑0 at the top
+        #image = np.flipud(image)
+        
+        row = image[rowIndex, :].copy()
+
+        # 6. Unbind
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        return row
