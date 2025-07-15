@@ -9,6 +9,7 @@ set(MODULE_PYTHON_SCRIPTS
   AnatomyCarveLogic/ComputeShader.py
   AnatomyCarveLogic/Texture.py
   AnatomyCarveLogic/Context.py
+  AnatomyCarveLogic/Mask.py
   )
 
 set(MODULE_PYTHON_RESOURCES
