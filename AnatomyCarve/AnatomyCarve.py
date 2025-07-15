@@ -5,7 +5,7 @@ from typing import Annotated, Optional
 
 import vtk
 
-from qt import QToolButton, QAbstractItemView
+from qt import Qt, QEvent, QAbstractItemView
 
 import slicer
 from slicer.i18n import tr as _
@@ -167,6 +167,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
         #if not node:
         node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Clipping sphere")
+        self.clippingSpheresNode = node
         
         dispNode = node.GetDisplayNode()
         dispNode.SetSnapMode(slicer.vtkMRMLMarkupsDisplayNode.SnapModeUnconstrained)
@@ -180,108 +181,29 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         clippingSpheres.placeActive(False)
         
         table = clippingSpheres.tableWidget()
-        table.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
-        table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        
+        ## Should be added when random removal/moving of the points is implemented
+        # table.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        # table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        
+        # Easier aleternative
+        table.setSelectionMode(QAbstractItemView.NoSelection)
+        table.setFocusPolicy(Qt.NoFocus)
+        table.setContextMenuPolicy(Qt.NoContextMenu)
+        table.viewport().setContextMenuPolicy(Qt.NoContextMenu)
         
         self.ui.clippingSpheres.currentMarkupsControlPointSelectionChanged.connect(self.onPointSelected)
         
-        # node.AddObserver(vtkMRMLMarkupsNode.PointAddedEvent , self.onPointEvent)
-        # node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointEvent)
-        # self._prevCount = node.GetNumberOfControlPoints()
-        # clippingSpheres.updateFinished.connect(
-        #     lambda: self.onMarkupsUpdated(node)
-        # )
-        
-        # print(vtkMRMLMarkupsNode.PointAddedEvent)
-        # print(vtkMRMLMarkupsNode.PointRemovedEvent)
-        
-        # proxy = MarkupChangeDetector(node)
-
-        # # 3. Register your own add/remove handlers
-        # proxy.onPointAdded(lambda idx, pos: print("Added at", idx, pos))
-        # proxy.onPointRemoved(lambda idx, pos: print("Removed at", idx, pos))
-
-        
-        #node.AddObserver(vtkMRMLMarkupsNode.FixedNumberOfControlPointsModifiedEvent , self.onPointEvent)
-        #node.AddControlPoint([0.0, 0.0, 0.0])
-        
-        node.AddObserver(vtkMRMLMarkupsNode.PointAddedEvent , self.onPointAddedEvent)
-        # node.AddObserver(vtkMRMLMarkupsNode.PointAboutToBeRemovedEvent , self.onPointAboutToBeRemovedEvent)
-        node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointRemovedEvent)
-        # widget = clippingSpheres
-        
-        # # 1) Disable the built‑in remove shortcut so it never does anything
-        # try:
-        #     widget.removeSelectedControlPoints.disconnect()
-        # except Exception:
-        #     pass
-
-        # # 2) Reconnect it to our own slot
-        # widget.removeSelectedControlPoints.connect(lambda: self._removeLastOnly(widget))
-
-        # # 3) (Optional) grey‑out the remove button unless the last row is selected
-        # removeBtn = None
-        # for btn in widget.findChildren(QToolButton):
-        #     if btn.toolTip().lower().startswith("remove"):
-        #         removeBtn = btn
-        #         break
-        # if removeBtn:
-        #     # selectionChanged gives you the newly selected row
-        #     widget.currentMarkupsControlPointSelectionChanged.\
-        #         connect(lambda idx: removeBtn.setEnabled(
-        #         idx == widget.currentNode().GetNumberOfControlPoints()-1))
-
-        # # also force the button state once at startup
-        # if removeBtn:
-        #     removeBtn.setEnabled(
-        #         node.GetNumberOfControlPoints() <= 1)
-
-    # def _removeLastOnly(self, widget):
-    #     """
-    #     Only actually remove a point if it’s the last one.
-    #     (If the user selected any other row, do nothing.)
-    #     """
-    #     node = widget.currentNode()
-    #     # get the selected row(s)
-    #     sel = widget.tableWidget().selectionModel().selectedRows()
-    #     if not sel:
-    #         return
-    #     idx = sel[0].row()
-    #     last = node.GetNumberOfControlPoints() - 1
-    #     if idx == last:
-    #         node.RemoveNthControlPoint(idx)
-    #     else:
-    #         # optionally give feedback
-    #         slicer.util.warningDisplay(
-    #             "You can only remove the last point", windowTitle="Remove Point")
-
-        
-
-    # def onMarkupsUpdated(self, node):
-    #     """
-    #     Called whenever the widget’s list of control points has changed.
-    #     Compare previous vs. current to see if points were added or removed.
-    #     """
-    #     currentCount = node.GetNumberOfControlPoints()
-    #     if currentCount > self._prevCount:
-    #         added = currentCount - self._prevCount
-    #         slicer.util.infoDisplay(f"{added} point(s) added")
-    #     elif currentCount < self._prevCount:
-    #         removed = self._prevCount - currentCount
-    #         slicer.util.infoDisplay(f"{removed} point(s) removed")
-    #     # update your cache
-    #     self._prevCount = currentCount
+                
+        self.tagPointAddedEvent = node.AddObserver(vtkMRMLMarkupsNode.PointAddedEvent , self.onPointAddedEvent)
+        self.tagPointRemovedEvent = node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointRemovedEvent)
 
     def onPointAddedEvent(self, caller, eventId, callData=None):
         n = caller.GetNumberOfControlPoints()
         updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
         self.logic.addLastClippingSphere(updatedPoints)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
-        # print("onPointAddedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
-
-    # def onPointAboutToBeRemovedEvent(self, caller, eventId, callData=None):
-    #     n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
-    #     print("onPointAboutToBeRemovedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
+        #print("onPointAddedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointID(i)) for i in range(n)])
         
     def onPointRemovedEvent(self, caller, eventId, callData=None):
         n = caller.GetNumberOfControlPoints()
@@ -289,30 +211,23 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.logic.removeLastClippingSphere(updatedPoints)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
         # print("onPointRemovedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
-        
-    
-    # def onPointEvent(self, caller, eventId, callData=None):
-    #     # if callData is None you can fall back to e.g. GetNumberOfControlPoints()-1
-    #     idx = int(callData) if callData is not None else None
-
-    #     if eventId == vtkMRMLMarkupsNode.PointAddedEvent:
-    #         print(f"Point added at index {idx}")
-    #     elif eventId == vtkMRMLMarkupsNode.PointRemovedEvent:
-    #         print(f"Point removed at index {idx}")
-    #     else:
-    #         # you’ll now see other event IDs (or 0 if something else is calling you)
-    #         print("Other event:", eventId)
-    #         n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
-    #         print("Resynced cache:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
             
         
     def onPointSelected(self, index):
-        print(index)
+        pass
+        #print(index)
         #slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
         self.removeObservers()
+        
+        if hasattr(self, 'clippingSpheresNode') and hasattr(self, 'tagPointAddedEvent'):
+            self.clippingSpheresNode.RemoveObserver(self.tagPointAddedEvent)
+            del self.tagPointAddedEvent
+        if hasattr(self, 'clippingSpheresNode') and hasattr(self, 'tagPointRemovedEvent'):
+            self.clippingSpheresNode.RemoveObserver(self.tagPointRemovedEvent)
+            del self.tagPointRemovedEvent
 
     def enter(self) -> None:
         """Called each time the user opens this module."""
@@ -481,85 +396,3 @@ class AnatomyCarveTest(ScriptedLoadableModuleTest):
         self.assertEqual(outputScalarRange[1], inputScalarRange[1])
 
         self.delayDisplay("Test passed")
-
-# class MarkupChangeDetector:
-#     """
-#     Watches a vtkMRMLMarkupsFiducialNode and fires your own
-#     onPointAdded/onPointRemoved callbacks when points really
-#     appear or disappear (keys by control-point ID).
-#     """
-#     def __init__(self, node):
-#         """
-#         node: a vtkMRMLMarkupsFiducialNode (already added to the scene)
-#         """
-#         self.node = node
-#         self._prevIds = self._gatherPointIds()
-#         self._onAdded   = []
-#         self._onRemoved = []
-#         # Observe the generic ModifiedEvent on the node:
-#         self._observerTag = node.AddObserver(
-#             vtk.vtkCommand.ModifiedEvent, self._onModified)
-
-#     def _gatherPointIds(self):
-#         """Return list of (id, position) for each control point."""
-#         ids = []
-#         n = self.node.GetNumberOfControlPoints()
-#         for i in range(n):
-#             cpId = self.node.GetNthControlPointID(i)
-#             pos = [0.0,0.0,0.0]
-#             self.node.GetNthControlPointPosition(i, pos)
-#             ids.append((cpId, tuple(pos)))
-#         return ids
-
-#     def _onModified(self, caller, eventId, callData=None):
-#         """
-#         Called on ANY modification: add, remove, or move.
-#         We diff the list of IDs to find adds/removals.
-#         """
-#         current = self._gatherPointIds()
-#         prev    = self._prevIds
-
-#         prevIds = {cpId for cpId,_ in prev}
-#         currIds = {cpId for cpId,_ in current}
-
-#         addedIds   = currIds - prevIds
-#         removedIds = prevIds - currIds
-
-#         # Fire added callbacks
-#         for cpId in addedIds:
-#             # look up its index and position in the **current** list
-#             for idx,(id_,pos) in enumerate(current):
-#                 if id_ == cpId:
-#                     for cb in self._onAdded:
-#                         cb(idx, pos)
-#                     break
-
-#         # Fire removed callbacks
-#         for cpId in removedIds:
-#             # look up its index and position in the **previous** list
-#             for idx,(id_,pos) in enumerate(prev):
-#                 if id_ == cpId:
-#                     for cb in self._onRemoved:
-#                         cb(idx, pos)
-#                     break
-
-#         # update cache
-#         self._prevIds = current
-
-#     def onPointAdded(self, callback):
-#         """
-#         Register for “point added” events.
-#         callback signature: f(index: int, position: tuple)
-#         """
-#         self._onAdded.append(callback)
-
-#     def onPointRemoved(self, callback):
-#         """
-#         Register for “point removed” events.
-#         callback signature: f(index: int, position: tuple)
-#         """
-#         self._onRemoved.append(callback)
-
-#     def detach(self):
-#         """If you ever want to stop observing."""
-#         self.node.RemoveObserver(self._observerTag)
