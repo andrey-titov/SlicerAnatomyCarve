@@ -10,12 +10,14 @@ from AnatomyCarveLogic.Texture import *
 from slicer import vtkMRMLSegmentationNode
 
 class Mask:
-    MAX_SPHERES = 32
+    MAX_SPHERES = 32    
+    NEW_POINT_MASK_BASED_ON_SELECTED_ROW = True # Not fully implemented
 
     def __init__(self, segmentation: vtkMRMLSegmentationNode, sphereCount: int) -> None:
         self.segmentation = segmentation
         self.texture = self.createTexture()
         self.sphereCount = sphereCount
+        self.selectedSphereIndexPrevious = -1
         self.selectedSphereIndex = -1
         # self.update()
 
@@ -35,9 +37,13 @@ class Mask:
         if self.sphereCount == 1:
             self.updateRowFromSegmentation(0)
         else:
-            rowMask = self.texture.readRow2d(self.sphereCount - 2)
+            if self.NEW_POINT_MASK_BASED_ON_SELECTED_ROW:
+                rowMask = self.texture.readRow2d(self.selectedSphereIndex)
+            else:
+                rowMask = self.texture.readRow2d(self.sphereCount - 2)
             self.texture.updateRow2d(self.sphereCount - 1, rowMask)
         
+        self.selectedSphereIndexPrevious = self.selectedSphereIndex
         self.selectSphere(self.sphereCount - 1)
         
         
@@ -80,7 +86,13 @@ class Mask:
             return
         
         if (self.selectedSphereIndex >= self.sphereCount):
-            self.selectSphere(self.sphereCount - 1)
+            if self.NEW_POINT_MASK_BASED_ON_SELECTED_ROW:
+                if (self.selectedSphereIndexPrevious >= self.sphereCount):
+                    self.selectSphere(self.sphereCount - 1)
+                else:
+                    self.selectSphere(self.selectedSphereIndexPrevious)
+            else:
+                self.selectSphere(self.sphereCount - 1)
             
     def updateSelectedRowFromSegmentation(self):
         self.updateRowFromSegmentation(self.selectedSphereIndex)
