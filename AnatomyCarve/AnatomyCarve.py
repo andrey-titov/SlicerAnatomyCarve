@@ -399,8 +399,12 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 
     def _checkCanRender(self, caller=None, event=None) -> None:
         if self._parameterNode and self._parameterNode.intensityVolume and self._parameterNode.segmentation and self._parameterNode.view:
-            self.ui.renderButton.toolTip = _("Start AnatomyCarve rendering")
-            self.ui.renderButton.enabled = True
+            if not hasattr(self.logic, 'context'):
+                self.ui.renderButton.toolTip = _("Start AnatomyCarve rendering")
+                self.ui.renderButton.enabled = True
+            else:            
+                self.ui.renderButton.toolTip = _("Rendering already started")
+                self.ui.renderButton.enabled = False
         else:
             self.ui.renderButton.toolTip = _("Select intesnsity volume, segmentation and view nodes")
             self.ui.renderButton.enabled = False
@@ -410,7 +414,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         with slicer.util.tryWithErrorDisplay(_("Failed to start rendering."), waitCursor=True):
             self.setupClippingSphereMarkups()
             self.logic.startRender(self.clippingSpheresNode)
-
+            self._checkCanRender()
+            
 
 
 #
