@@ -310,12 +310,12 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                
         if not self._parameterNode.segmentation:
            firstSegmentationNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLSegmentationNode")
-           if firstVolumeNode:
+           if firstSegmentationNode:
                self._parameterNode.segmentation = firstSegmentationNode
                
         if not self._parameterNode.view:
            firstViewNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLViewNode")
-           if firstVolumeNode:
+           if firstViewNode:
                self._parameterNode.view = firstViewNode
 
 
