@@ -190,10 +190,37 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # table.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         
         # Easier aleternative
-        table.setSelectionMode(QAbstractItemView.NoSelection)
-        table.setFocusPolicy(Qt.NoFocus)
-        table.setContextMenuPolicy(Qt.NoContextMenu)
-        table.viewport().setContextMenuPolicy(Qt.NoContextMenu)
+        # table.setSelectionMode(QAbstractItemView.NoSelection)
+        # table.setFocusPolicy(Qt.NoFocus)
+        # table.setContextMenuPolicy(Qt.NoContextMenu)
+        # table.viewport().setContextMenuPolicy(Qt.NoContextMenu)
+        
+        w = self.ui.clippingSpheres
+
+        for btn in w.findChildren(qt.QToolButton):
+            # toolTip is a str property, not a callable
+            tip = btn.toolTip
+            if not tip:
+                continue
+            if any(keyword in tip.lower() for keyword in (
+                    "delete", "remove", "unset", "move up", "move down")):
+                btn.hide()
+
+        # 2) Steal the table view (fallback from QTableView → QAbstractItemView)
+        tv = w.findChild(qt.QTableView)
+        if not tv:
+            tv = w.findChild(qt.QAbstractItemView)
+
+        # 3) Disable any reordering and context‑menu deletion…
+        if tv:
+            tv.setDragEnabled(False)
+            tv.setAcceptDrops(False)
+            tv.setDragDropMode(qt.QAbstractItemView.NoDragDrop)
+            tv.setContextMenuPolicy(qt.Qt.NoContextMenu)
+
+            # 4) …but keep normal click‑to‑select
+            tv.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+            tv.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         
         self.ui.clippingSpheres.currentMarkupsControlPointSelectionChanged.connect(self.onPointSelected)
         
