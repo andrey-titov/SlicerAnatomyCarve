@@ -1,6 +1,6 @@
 # AnatomyCarve
 
-AnatomyCarve is a module that allows interactive visualization of 3D medical images by enabling users to perform clipping on segments of their choice. This customized carving of the dataset enables the creation of detailed visualizations similar to those found in anatomical textbooks.
+AnatomyCarve is a 3D Slicer module that allows interactive visualization of 3D medical images by enabling users to perform clipping on segments of their choice. This customized carving of the dataset enables the creation of detailed visualizations similar to those found in anatomical textbooks.
 
 <img width="2556" height="1289" alt="Screenshot 2025-07-16 170326" src="https://github.com/user-attachments/assets/95592713-5956-45b5-a00d-c834633021c0" />
 
