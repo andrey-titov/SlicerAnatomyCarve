@@ -98,6 +98,9 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
     def changeSelctedPointIndex(self, newSelectedPointIndex):
         self.context.mask.selectSphere(newSelectedPointIndex)
         self.context.mask.updateSelectedRowFromSegmentation()
+        
+        sphereRadiusesList = list(self.sphereRadiuses)
+        return self.sphereRadiuses[sphereRadiusesList[newSelectedPointIndex]]
 
 
     def addLastClippingSphere(self, sphereRadius: int):
@@ -124,8 +127,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         if len(self.sphereRadiuses) == 0:
             return self.context.mask.selectedSphereIndex, None
         
-        newLastIndex = len(self.sphereRadiuses) - 1
-        return self.context.mask.selectedSphereIndex, self.sphereRadiuses[sphereRadiusesList[newLastIndex]] # radius of the previous sphere
+        return self.context.mask.selectedSphereIndex, self.sphereRadiuses[sphereRadiusesList[self.context.mask.selectedSphereIndex]] # radius of the previous sphere
         
     def updateClippingSphereRadius(self, newSphereRadius):
         
@@ -137,7 +139,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         if len(sphereRadiusesList) == 0:
             return
         
-        self.sphereRadiuses[sphereRadiusesList[len(sphereRadiusesList) - 1]] = newSphereRadius
+        self.sphereRadiuses[sphereRadiusesList[self.context.mask.selectedSphereIndex]] = newSphereRadius
         
         self.forceRender()
     

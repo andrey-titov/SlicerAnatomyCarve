@@ -253,7 +253,10 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPointSelected(self, index):
         #pass
         #print(index)
-        self.logic.changeSelctedPointIndex(index)
+        newSphereRadius = self.logic.changeSelctedPointIndex(index)
+        #self.selectRow(selectedSphereIndex)
+        
+        self.ui.sphereRadius.setValue(newSphereRadius)
         #slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
     
     def onSphereRadiusValueChanged(self, newSphereRadius: float):
