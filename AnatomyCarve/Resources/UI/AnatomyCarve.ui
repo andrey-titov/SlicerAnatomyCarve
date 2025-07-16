@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>406</width>
-    <height>929</height>
+    <height>979</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -145,7 +145,7 @@
          <string>Sets the radius of the invisible carving sphere.</string>
         </property>
         <property name="singleStep">
-         <double>10.000000000000000</double>
+         <double>1.000000000000000</double>
         </property>
         <property name="minimum">
          <double>50.000000000000000</double>

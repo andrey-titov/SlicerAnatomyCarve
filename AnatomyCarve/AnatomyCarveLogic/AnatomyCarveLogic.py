@@ -105,6 +105,34 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
     def removeLastClippingSphere(self):
         self.context.mask.removeSphere()
+        
+        sphereRadiusesList = list(self.sphereRadiuses)
+        
+        if len(sphereRadiusesList) == 0:
+            return None
+        
+        lastIndex = len(sphereRadiusesList) - 1        
+        self.sphereRadiuses.pop(sphereRadiusesList[lastIndex])
+        
+        if len(self.sphereRadiuses) == 0:
+            return None
+        
+        newLastIndex = len(self.sphereRadiuses) - 1
+        return self.sphereRadiuses[sphereRadiusesList[newLastIndex]] # radius of the previous sphere
+        
+    def updateClippingSphereRadius(self, newSphereRadius):
+        
+        if not hasattr(self, 'context'):
+            return
+        
+        sphereRadiusesList = list(self.sphereRadiuses)
+        
+        if len(sphereRadiusesList) == 0:
+            return
+        
+        self.sphereRadiuses[sphereRadiusesList[len(sphereRadiusesList) - 1]] = newSphereRadius
+        
+        self.forceRender()
     
     def addInitialClippingSphere(self):
         # Create a new fiducial list
@@ -204,6 +232,10 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
         shader.dispatch(self.context.labelToColorVolumeTex3d.dims)
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+        
+    def forceRender(self):
+        viewIndex = self.context.getViewIndex()
+        slicer.app.layoutManager().threeDWidget(viewIndex).threeDView().renderWindow().Render()
 
     # def createClipMask(self):
     #     # Get the currently selected segmentation node

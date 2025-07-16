@@ -151,6 +151,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.applyButton.connect("clicked(bool)", self.onApplyButton)
         self.ui.renderButton.connect("clicked(bool)", self.onRenderButton)
         
+        self.ui.sphereRadius.connect('valueChanged(double)', self.onSphereRadiusValueChanged)
+        
         #self.setupClippingSphereMarkups()
 
         # Make sure parameter node is initialized (needed for module reload)
@@ -166,7 +168,8 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # 2. Create (or grab) a fiducial node
         #node = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLMarkupsFiducialNode')
         #if not node:
-        node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Clipping sphere")
+        node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "Clipping Spheres")
+        node.SetMarkupLabelFormat("S-%02d")
         self.clippingSpheresNode = node
         
         dispNode = node.GetDisplayNode()
@@ -208,7 +211,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPointRemovedEvent(self, caller, eventId, callData=None):
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        self.logic.removeLastClippingSphere()
+        previousSphereRadius = self.logic.removeLastClippingSphere()
+        if previousSphereRadius is not None:
+            self.ui.sphereRadius.setValue(previousSphereRadius)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
         # print("onPointRemovedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointPosition(i)) for i in range(n)])
             
@@ -217,6 +222,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         pass
         #print(index)
         #slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
+    
+    def onSphereRadiusValueChanged(self, newSphereRadius: float):
+        self.logic.updateClippingSphereRadius(newSphereRadius)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""
