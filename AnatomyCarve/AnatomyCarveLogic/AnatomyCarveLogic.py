@@ -45,43 +45,43 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
     def getParameterNode(self):
         return AnatomyCarveParameterNode(super().getParameterNode())
 
-    def process(self,
-                inputVolume: vtkMRMLScalarVolumeNode,
-                outputVolume: vtkMRMLScalarVolumeNode,
-                imageThreshold: float,
-                invert: bool = False,
-                showResult: bool = True) -> None:
-        """
-        Run the processing algorithm.
-        Can be used without GUI widget.
-        :param inputVolume: volume to be thresholded
-        :param outputVolume: thresholding result
-        :param imageThreshold: values above/below this threshold will be set to 0
-        :param invert: if True then values above the threshold will be set to 0, otherwise values below are set to 0
-        :param showResult: show output volume in slice viewers
-        """
+    # def process(self,
+    #             inputVolume: vtkMRMLScalarVolumeNode,
+    #             outputVolume: vtkMRMLScalarVolumeNode,
+    #             imageThreshold: float,
+    #             invert: bool = False,
+    #             showResult: bool = True) -> None:
+    #     """
+    #     Run the processing algorithm.
+    #     Can be used without GUI widget.
+    #     :param inputVolume: volume to be thresholded
+    #     :param outputVolume: thresholding result
+    #     :param imageThreshold: values above/below this threshold will be set to 0
+    #     :param invert: if True then values above the threshold will be set to 0, otherwise values below are set to 0
+    #     :param showResult: show output volume in slice viewers
+    #     """
 
-        if not inputVolume or not outputVolume:
-            raise ValueError("Input or output volume is invalid")
+    #     if not inputVolume or not outputVolume:
+    #         raise ValueError("Input or output volume is invalid")
 
-        import time
+    #     import time
 
-        startTime = time.time()
-        logging.info("Processing started")
+    #     startTime = time.time()
+    #     logging.info("Processing started")
 
-        # Compute the thresholded output volume using the "Threshold Scalar Volume" CLI module
-        cliParams = {
-            "InputVolume": inputVolume.GetID(),
-            "OutputVolume": outputVolume.GetID(),
-            "ThresholdValue": imageThreshold,
-            "ThresholdType": "Above" if invert else "Below",
-        }
-        cliNode = slicer.cli.run(slicer.modules.thresholdscalarvolume, None, cliParams, wait_for_completion=True, update_display=showResult)
-        # We don't need the CLI module node anymore, remove it to not clutter the scene with it
-        slicer.mrmlScene.RemoveNode(cliNode)
+    #     # Compute the thresholded output volume using the "Threshold Scalar Volume" CLI module
+    #     cliParams = {
+    #         "InputVolume": inputVolume.GetID(),
+    #         "OutputVolume": outputVolume.GetID(),
+    #         "ThresholdValue": imageThreshold,
+    #         "ThresholdType": "Above" if invert else "Below",
+    #     }
+    #     cliNode = slicer.cli.run(slicer.modules.thresholdscalarvolume, None, cliParams, wait_for_completion=True, update_display=showResult)
+    #     # We don't need the CLI module node anymore, remove it to not clutter the scene with it
+    #     slicer.mrmlScene.RemoveNode(cliNode)
 
-        stopTime = time.time()
-        logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
+    #     stopTime = time.time()
+    #     logging.info(f"Processing completed in {stopTime-startTime:.2f} seconds")
 
     def startRender(self, clippingSpheresNode: vtkMRMLMarkupsFiducialNode) -> None:
         self.node: AnatomyCarveParameterNode = self.getParameterNode()
@@ -289,9 +289,9 @@ class AnatomyCarveParameterNode:
     intensityVolume: vtkMRMLScalarVolumeNode
     segmentation: vtkMRMLSegmentationNode
     view: vtkMRMLViewNode
-    inputVolume: vtkMRMLScalarVolumeNode
-    imageThreshold: Annotated[float, WithinRange(-100, 500)] = 100
-    invertThreshold: bool = False
-    thresholdedVolume: vtkMRMLScalarVolumeNode
-    invertedVolume: vtkMRMLScalarVolumeNode
-    carvingSphere: vtkMRMLMarkupsFiducialNode
+    # inputVolume: vtkMRMLScalarVolumeNode
+    # imageThreshold: Annotated[float, WithinRange(-100, 500)] = 100
+    # invertThreshold: bool = False
+    # thresholdedVolume: vtkMRMLScalarVolumeNode
+    # invertedVolume: vtkMRMLScalarVolumeNode
+    # carvingSphere: vtkMRMLMarkupsFiducialNode
