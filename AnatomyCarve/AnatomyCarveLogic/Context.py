@@ -108,7 +108,7 @@ class Context:
         #print(arrayRGBA.shape)
         
         # Create new volume node
-        outputVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "RGBA_Volume")
+        outputVolume = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLVectorVolumeNode", "AnatomyCarve Output")
         slicer.util.updateVolumeFromArray(outputVolume, arrayRGBA)
 
         # Copy geometry (origin, spacing, matrix)

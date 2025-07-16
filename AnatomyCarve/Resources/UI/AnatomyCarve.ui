@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>387</width>
-    <height>774</height>
+    <height>749</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -136,7 +136,7 @@
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
-          <verstretch>12</verstretch>
+          <verstretch>10</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -173,19 +173,6 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0" colspan="2">
-       <widget class="qSlicerSimpleMarkupsWidget" name="clippingSpheres">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="nodeSelectorVisible">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="9" column="0">
        <widget class="QLabel" name="label_segmentsClipping">
         <property name="text">
@@ -213,6 +200,25 @@
         </property>
         <property name="text">
          <string>Render</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="qSlicerSimpleMarkupsWidget" name="clippingSpheres">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>5</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="nodeSelectorVisible">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
