@@ -30,8 +30,8 @@ AnatomyCarve is a 3D Slicer module that allows interactive visualization of 3D m
 6. Rotate the 3D view of main view by clicking on it and dragging the mouse. You will see that an invisible sphere was added into the image and it clips the three segments that were deselected previously.
 7. Press on the "Place a control point" button in the "Clipping spheres" table.
 8. Drag your mouse on the 3D view and click anywhere in the 3D view close to the volume. A new clipping sphere will be positioned in the 3D view.
-9. Press on the small "closed eye" icon next to "muscle" segment in the list of segments to transform it into an "open eye" icon. As a result, the second sphere won’t clip the "muscle" segment, but it will still clip the "subcutaneous_fat" and "torso_fat" segments.
-10. Drag the "sphere radius" slider widget to change the radius of the last added clipping sphere. You should see the "subcutaneous_fat" and "torso_fat" segments being clipped.
+9. Press on the small "closed eye" icon next to "muscle" segment in the list of segments to transform it into an "open eye" icon. As a result, the second sphere won't clip the "muscle" segment, but it will still clip the "subcutaneous_fat" and "torso_fat" segments.
+10. Drag the "sphere radius" slider widget to change the radius of the last added clipping sphere. You should see the clipping update for the "subcutaneous_fat" and "torso_fat" segments.
 
 # For Developers
 
