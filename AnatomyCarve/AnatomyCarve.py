@@ -275,11 +275,21 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #     if firstVolumeNode:
         #         self._parameterNode.inputVolume = firstVolumeNode
         
-        ## intensityVolume: load first
-        #if not self._parameterNode.intensityVolume:
-        #    firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
-        #    if firstVolumeNode:
-        #        self._parameterNode.intensityVolume = firstVolumeNode
+        # intensityVolume: load first
+        if not self._parameterNode.intensityVolume:
+           firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
+           if firstVolumeNode:
+               self._parameterNode.intensityVolume = firstVolumeNode
+               
+        if not self._parameterNode.segmentation:
+           firstSegmentationNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLSegmentationNode")
+           if firstVolumeNode:
+               self._parameterNode.segmentation = firstSegmentationNode
+               
+        if not self._parameterNode.view:
+           firstViewNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLViewNode")
+           if firstVolumeNode:
+               self._parameterNode.view = firstViewNode
 
 
     def setParameterNode(self, inputParameterNode: Optional[AnatomyCarveParameterNode]) -> None:
