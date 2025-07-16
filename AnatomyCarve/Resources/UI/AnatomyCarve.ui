@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
-    <height>723</height>
+    <width>387</width>
+    <height>774</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -17,6 +17,12 @@
       <string>AnatomyCarve Inputs</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label_intensityVolume">
         <property name="text">
@@ -126,7 +132,20 @@
        </widget>
       </item>
       <item row="11" column="0" colspan="2">
-       <widget class="qMRMLSegmentsTableView" name="segmentsClipping"/>
+       <widget class="qMRMLSegmentsTableView" name="segmentsClipping">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>12</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>250</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="label_sphereRadius">
@@ -151,16 +170,6 @@
         </property>
         <property name="value">
          <double>200.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="renderButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Render</string>
         </property>
        </widget>
       </item>
@@ -191,25 +200,39 @@
         </property>
        </widget>
       </item>
+      <item row="4" column="1">
+       <widget class="QPushButton" name="renderButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Render</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -236,17 +259,6 @@
    <class>qMRMLSegmentsTableView</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentsTableView.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkSliderWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
