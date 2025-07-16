@@ -231,14 +231,19 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPointAddedEvent(self, caller, eventId, callData=None):
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        self.logic.addLastClippingSphere(self.ui.sphereRadius.value)
+        selectedSphereIndex = self.logic.addLastClippingSphere(self.ui.sphereRadius.value)
+        self.selectRow(selectedSphereIndex)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
         #print("onPointAddedEvent:", [tuple(slicer.util.getNode("Clipping sphere").GetNthControlPointID(i)) for i in range(n)])
+        
         
     def onPointRemovedEvent(self, caller, eventId, callData=None):
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        previousSphereRadius = self.logic.removeLastClippingSphere()
+        selectedSphereIndex, previousSphereRadius = self.logic.removeLastClippingSphere()
+        
+        self.selectRow(selectedSphereIndex)
+        
         if previousSphereRadius is not None:
             self.ui.sphereRadius.setValue(previousSphereRadius)
         # n = slicer.util.getNode("Clipping sphere").GetNumberOfControlPoints()
@@ -246,12 +251,41 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             
         
     def onPointSelected(self, index):
-        pass
+        #pass
         #print(index)
+        self.logic.changeSelctedPointIndex(index)
         #slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
     
     def onSphereRadiusValueChanged(self, newSphereRadius: float):
-        self.logic.updateClippingSphereRadius(newSphereRadius)
+        self.logic.updateClippingSphereRadius(newSphereRadius)        
+        
+    def selectRow(self, row: int):
+        
+        if row == -1:
+            return
+        
+        w = self.ui.clippingSpheres
+
+        # 1) grab the internal QTableView
+        tv = w.findChild(qt.QTableView)
+        if not tv:
+            raise RuntimeError("Couldn’t find the table view inside the simpleMarkupsWidget")
+
+        # 2) clear any old selection
+        tv.clearSelection()
+
+        # 3) pick the row you want (zero‑based)
+        #row = 0
+
+        # 4) highlight that entire row
+        tv.selectRow(row)
+
+        # 5) optionally move keyboard focus/current index there
+        idx = tv.model().index(row, 0)
+        tv.setCurrentIndex(idx)
+
+        # 6) scroll it into view
+        tv.scrollTo(idx, qt.QAbstractItemView.PositionAtCenter)
     
     def cleanup(self) -> None:
         """Called when the application closes and the module widget is destroyed."""

@@ -16,7 +16,8 @@ class Mask:
         self.segmentation = segmentation
         self.texture = self.createTexture()
         self.sphereCount = sphereCount
-        self.update()
+        self.selectedSphereIndex = -1
+        # self.update()
 
     def createTexture(self):
         segmentation = self.segmentation.GetSegmentation()
@@ -30,7 +31,16 @@ class Mask:
     
     def addSphere(self):
         self.sphereCount += 1
-        self.update()
+        
+        if self.sphereCount == 1:
+            self.updateRowFromSegmentation(0)
+        else:
+            rowMask = self.texture.readRow2d(self.sphereCount - 2)
+            self.texture.updateRow2d(self.sphereCount - 1, rowMask)
+        
+        self.selectSphere(self.sphereCount - 1)
+        
+        
         
         # if self.sphereCount <= 1:
         #     return
@@ -42,16 +52,11 @@ class Mask:
         #     pass
         #print(self.texture.readRow2d(0))
         
-    def removeSphere(self):
-        if self.sphereCount <= 0:
-            return
+    def selectSphere(self, index: int):
         
-        self.sphereCount -= 1
+        self.selectedSphereIndex = index
         
-        if (self.sphereCount <= 0):
-            return
-        
-        rowMask = self.texture.readRow2d(self.sphereCount - 1)
+        rowMask = self.texture.readRow2d(index)
         
         segmentation = self.segmentation.GetSegmentation()
         displayNode = self.segmentation.GetDisplayNode()
@@ -62,9 +67,25 @@ class Mask:
             labelValue = segment.GetLabelValue()
             visibility = rowMask[labelValue] == 1
             displayNode.SetSegmentVisibility(segmentID, visibility)
+    
+    def removeSphere(self):
+        if self.sphereCount <= 0:
+            self.selectedSphereIndex = -1
+            return
+        
+        self.sphereCount -= 1
+        
+        if (self.sphereCount <= 0):
+            self.selectedSphereIndex = -1
+            return
+        
+        if (self.selectedSphereIndex >= self.sphereCount):
+            self.selectSphere(self.sphereCount - 1)
             
-
-    def update(self):
+    def updateSelectedRowFromSegmentation(self):
+        self.updateRowFromSegmentation(self.selectedSphereIndex)
+        
+    def updateRowFromSegmentation(self, rowIndex: int):
         # Get the currently selected segmentation node
         #segmentation = self.getParameterNode().segmentation  # Replace with your actual node name if needed
         
@@ -86,4 +107,4 @@ class Mask:
 
         # print(rowMask)
         if self.sphereCount >= 1:
-            self.texture.updateRow2d(self.sphereCount - 1, rowMask)
+            self.texture.updateRow2d(rowIndex, rowMask)

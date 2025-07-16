@@ -88,11 +88,16 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         self.clippingSpheresNode = clippingSpheresNode
 
         self.context = Context(self.node.intensityVolume, self.node.segmentation, self.node.view)
+        
 
         self.addInitialClippingSphere()
         
         self.applyFillColorComputeShader()
         self.applyCarveVoxelsComputeShader()
+        
+    def changeSelctedPointIndex(self, newSelectedPointIndex):
+        self.context.mask.selectSphere(newSelectedPointIndex)
+        self.context.mask.updateSelectedRowFromSegmentation()
 
 
     def addLastClippingSphere(self, sphereRadius: int):
@@ -102,6 +107,8 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         lastIndex = self.clippingSpheresNode.GetNumberOfControlPoints() - 1
         self.sphereRadiuses[self.clippingSpheresNode.GetNthControlPointID(lastIndex)] = sphereRadius
         self.context.mask.addSphere()
+        
+        return self.context.mask.selectedSphereIndex
 
     def removeLastClippingSphere(self):
         self.context.mask.removeSphere()
@@ -109,16 +116,16 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         sphereRadiusesList = list(self.sphereRadiuses)
         
         if len(sphereRadiusesList) == 0:
-            return None
+            return self.context.mask.selectedSphereIndex, None
         
         lastIndex = len(sphereRadiusesList) - 1        
         self.sphereRadiuses.pop(sphereRadiusesList[lastIndex])
         
         if len(self.sphereRadiuses) == 0:
-            return None
+            return self.context.mask.selectedSphereIndex, None
         
         newLastIndex = len(self.sphereRadiuses) - 1
-        return self.sphereRadiuses[sphereRadiusesList[newLastIndex]] # radius of the previous sphere
+        return self.context.mask.selectedSphereIndex, self.sphereRadiuses[sphereRadiusesList[newLastIndex]] # radius of the previous sphere
         
     def updateClippingSphereRadius(self, newSphereRadius):
         
@@ -213,7 +220,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         
         sphereDetails = np.array(sphereDetailsArray, dtype=np.float32)
         
-        self.context.mask.update()
+        self.context.mask.updateSelectedRowFromSegmentation()
         
         #self.context.mask.texture.readRow2d(0)
 
