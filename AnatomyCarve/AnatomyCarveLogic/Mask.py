@@ -11,7 +11,7 @@ from slicer import vtkMRMLSegmentationNode
 
 class Mask:
     MAX_SPHERES = 32    
-    NEW_POINT_MASK_BASED_ON_SELECTED_ROW = True # Not fully implemented
+    NEW_POINT_MASK_BASED_ON_SELECTED_ROW = True
 
     def __init__(self, segmentation: vtkMRMLSegmentationNode, sphereCount: int) -> None:
         self.segmentation = segmentation
