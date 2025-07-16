@@ -104,8 +104,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         self.context.mask.addSphere()
 
     def removeLastClippingSphere(self):
-        pass
-        #print(updatedPoints)
+        self.context.mask.removeSphere()
     
     def addInitialClippingSphere(self):
         # Create a new fiducial list

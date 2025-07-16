@@ -51,7 +51,17 @@ class Mask:
         if (self.sphereCount <= 0):
             return
         
+        rowMask = self.texture.readRow2d(self.sphereCount - 1)
         
+        segmentation = self.segmentation.GetSegmentation()
+        displayNode = self.segmentation.GetDisplayNode()
+
+        for i in range(segmentation.GetNumberOfSegments()):
+            segmentID = segmentation.GetNthSegmentID(i)
+            segment = segmentation.GetSegment(segmentID)
+            labelValue = segment.GetLabelValue()
+            visibility = rowMask[labelValue] == 1
+            displayNode.SetSegmentVisibility(segmentID, visibility)
             
 
     def update(self):
@@ -69,9 +79,9 @@ class Mask:
 
         for i in range(segmentation.GetNumberOfSegments()):
             segmentID = segmentation.GetNthSegmentID(i)
-            # segment = segmentation.GetSegment(segmentID)
+            segment = segmentation.GetSegment(segmentID)
             isVisible = displayNode.GetSegmentVisibility(segmentID)
-            labelValue = i + 1
+            labelValue = segment.GetLabelValue()
             rowMask[labelValue] = 1 if bool(isVisible) else 0
 
         # print(rowMask)
