@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+
 from typing import Annotated, Optional
 
 import vtk
@@ -25,6 +26,12 @@ from AnatomyCarveLogic.Context import *
 from vtk.util import numpy_support
 from AnatomyCarveLogic.ComputeShader import *
 
+# from qt import QOpenGLWidget
+# from OpenGL.GL import glIsTexture
+
+# from OpenGL.GL import glGetError, GL_NO_ERROR, GL_INVALID_VALUE
+# import traceback
+# import sys
 
 class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
     """This class should implement all the actual
@@ -88,12 +95,10 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         self.clippingSpheresNode = clippingSpheresNode
 
         self.context = Context(self.node.intensityVolume, self.node.segmentation, self.node.view)
-        
-
         self.addInitialClippingSphere()
-        
         self.applyFillColorComputeShader()
         self.applyCarveVoxelsComputeShader()
+
         
     def changeSelctedPointIndex(self, newSelectedPointIndex):
         self.context.mask.selectSphere(newSelectedPointIndex)
@@ -106,6 +111,21 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
     def addLastClippingSphere(self, sphereRadius: int):
         #print(updatedPoints)
         # print(self.context.mask.texture.readRow2d(0))
+
+        
+        # err = glGetError()
+        # # if err == GL_INVALID_VALUE:
+        # #     print("Detected GL_INVALID_VALUE (1281); dumping Python stack:")
+        # #     traceback.print_stack()
+        
+        
+        # # find the QOpenGLWidget inside the 3D view
+        # threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
+        # glWidget = threeDView.findChildren(QOpenGLWidget)[0]
+
+        # # 1. Bind its context + FBO
+        # glWidget.makeCurrent()
+        
         
         lastIndex = self.clippingSpheresNode.GetNumberOfControlPoints() - 1
         self.sphereRadiuses[self.clippingSpheresNode.GetNthControlPointID(lastIndex)] = sphereRadius
@@ -152,8 +172,18 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
 
         # Add a fiducial at (x, y, z)
         self.sphereRadiuses = dict()
+
+        # err = glGetError()
+        # if err == GL_INVALID_VALUE:
+        #     print("Detected GL_INVALID_VALUE (1281); dumping Python stack:")
+        #     traceback.print_stack()
         
         self.clippingSpheresNode.AddControlPoint([0.0, 0.0, 0.0]) # Coordinates in RAS
+
+        # err = glGetError()
+        # if err == GL_INVALID_VALUE:
+        #     print("Detected GL_INVALID_VALUE (1281); dumping Python stack:")
+        #     traceback.print_stack()
         
         # n = self.clippingSpheresNode.GetNumberOfControlPoints()
         # self.addLastClippingSphere([tuple(self.clippingSpheresNode.GetNthControlPointID(i)) for i in range(n)])
@@ -202,6 +232,78 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         observerTag = renderWindow.AddObserver(vtk.vtkCommand.StartEvent, self.applyCarveVoxelsComputeShaderTick)
 
     def applyCarveVoxelsComputeShaderTick(self, caller, event):
+
+        # # # find the QOpenGLWidget inside the 3D view
+        # # # 1. Grab a specific 3D view (here: the first one)
+        # # view = slicer.app.layoutManager().threeDWidget(0).threeDView()
+        # # rw = view.renderWindow()
+
+        # # #print(rw)
+
+        # # #print("VTK GetGenericContext:", rw.GetGenericContext())
+        # # #print("VTK GenericDrawableHandle:", rw.GetGenericDrawableHandle())
+
+        # # # 2. Tell VTK to always re-bind this context, even if it thinks it’s already current
+        # # rw.SetForceMakeCurrent()
+
+        # # # 3. Make that context current on this thread
+        # # rw.MakeCurrent()
+
+        # # #print("VTK GetGenericContext:", rw.GetGenericContext())
+        # # #print("VTK GenericDrawableHandle:", rw.GetGenericDrawableHandle())
+
+
+
+        # # # first, make sure the Slicer view’s context is bound:
+        # # view = slicer.app.layoutManager().threeDWidget(0).threeDView()
+        # # rw = view.renderWindow()
+        # # rw.SetForceMakeCurrent()
+        # # rw.MakeCurrent()
+
+        # # # now grab the native GL context handle
+        # # ctx = None
+        # # if sys.platform == 'win32':
+        # #     # on Windows: HGLRC from wglGetCurrentContext()
+        # #     from OpenGL.WGL import wglGetCurrentContext
+        # #     ctx = wglGetCurrentContext()
+        # # elif sys.platform.startswith('linux'):
+        # #     # on X11/Linux: GLXContext* from glXGetCurrentContext()
+        # #     from OpenGL.GLX import glXGetCurrentContext
+        # #     ctx = glXGetCurrentContext()
+        # # elif sys.platform == 'darwin':
+        # #     # on macOS: CGLContextObj from CGLGetCurrentContext()
+        # #     from OpenGL.CGL import CGLGetCurrentContext
+        # #     ctx = CGLGetCurrentContext()
+        # # else:
+        # #     print(f"Unsupported platform: {sys.platform}")
+
+        # #print("Current native OpenGL context handle:", ctx)
+
+        # print(glGetError())       
+
+        # # (make sure you’ve already done rw.MakeCurrent() on your vtk render window…)
+
+        # # get the raw context handle
+        # if sys.platform == 'win32':
+        #     from OpenGL.WGL import wglGetCurrentContext
+        #     current = wglGetCurrentContext()
+        # elif sys.platform.startswith('linux'):
+        #     from OpenGL.GLX import glXGetCurrentContext
+        #     current = glXGetCurrentContext()
+        # elif sys.platform == 'darwin':
+        #     from OpenGL.CGL import CGLGetCurrentContext
+        #     current = CGLGetCurrentContext()
+        # else:
+        #     raise RuntimeError(f"Unsupported platform: {sys.platform}")
+
+        # print("Current context handle:", current)
+
+
+
+
+        # Clear error from event
+        err = glGetError()
+
         shader = self.shaderCarveVoxels
 
         modelMatrix = vtk.vtkMatrix4x4()

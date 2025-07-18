@@ -229,6 +229,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.tagPointRemovedEvent = node.AddObserver(vtkMRMLMarkupsNode.PointRemovedEvent , self.onPointRemovedEvent)
 
     def onPointAddedEvent(self, caller, eventId, callData=None):
+        # Clear error from event
+        err = glGetError()
+
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
         selectedSphereIndex = self.logic.addLastClippingSphere(self.ui.sphereRadius.value)
@@ -238,6 +241,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         
     def onPointRemovedEvent(self, caller, eventId, callData=None):
+        # Clear error from event
+        err = glGetError()
+
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
         selectedSphereIndex, previousSphereRadius = self.logic.removeLastClippingSphere()
@@ -251,6 +257,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             
         
     def onPointSelected(self, index):
+        # Clear error from event
+        err = glGetError()
+
         #pass
         #print(index)
         newSphereRadius = self.logic.changeSelctedPointIndex(index)
@@ -260,6 +269,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         #slicer.util.getNode("Clipping sphere").AddObserver(vtkMRMLMarkupsNode.PointPositionDefinedEvent, self.onPointEvent)
     
     def onSphereRadiusValueChanged(self, newSphereRadius: float):
+        # Clear error from event
+        err = glGetError()
+
         self.logic.updateClippingSphereRadius(newSphereRadius)        
         
     def selectRow(self, row: int):

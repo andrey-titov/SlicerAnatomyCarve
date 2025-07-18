@@ -60,7 +60,7 @@ class Texture:
         self.dims = data.shape if isScalarComponent else data.shape[:-1]
         # print(self.dims)
         
-        self.textureId = glGenTextures(1)
+        self.textureId = glGenTextures(1).item()
         
         self.internalformat = internalformat
         self.format = format
@@ -74,16 +74,20 @@ class Texture:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
             glTexStorage2D(GL_TEXTURE_2D, 1, self.internalformat, *self.dims)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, *self.dims, self.format, self.type, data.ravel())
+            glBindTexture(GL_TEXTURE_2D, 0)
         elif len(self.dims) == 3: #isScalarComponent and len(data.shape) == 3 or not isScalarComponent and len(data.shape) == 4:
             glBindTexture(GL_TEXTURE_3D, self.textureId)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glTexStorage3D(GL_TEXTURE_3D, 1, self.internalformat, *self.dims)
             glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, *self.dims, self.format, self.type, data.ravel())
+            glBindTexture(GL_TEXTURE_3D, 0)
         else:
             logging.error(f"Arrays of dimension {len(data.shape)} are not supported")
 
     def updateRow2d(self, rowIndex: int, newRow: np.ndarray):
+        # print(f"type(self.textureId): {type(self.textureId)}")
+        # print(f"bool(glIsTexture(self.textureId)): {bool(glIsTexture(int(self.textureId)))}")
         glBindTexture(GL_TEXTURE_2D, self.textureId)
 
         # Set unpack alignment to 1 to avoid issues with row padding
@@ -98,6 +102,8 @@ class Texture:
             self.type,      # type
             newRow.ravel()               # numpy array with shape (width,)
         )
+
+        glBindTexture(GL_TEXTURE_2D, 0)
         
     def readRow2d(self, rowIndex: int):
         glBindTexture(GL_TEXTURE_2D, self.textureId)

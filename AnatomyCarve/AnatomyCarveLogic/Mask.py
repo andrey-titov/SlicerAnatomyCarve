@@ -9,11 +9,38 @@ from AnatomyCarveLogic.Texture import *
 
 from slicer import vtkMRMLSegmentationNode
 
+# from qt import QOpenGLWidget
+# from OpenGL.GL import glIsTexture
+
+# from OpenGL.GL import glGetString, glGetError, GL_NO_ERROR
+# from OpenGL.GL import GL_VERSION
+
+# import traceback
+
 class Mask:
     MAX_SPHERES = 32    
     NEW_POINT_MASK_BASED_ON_SELECTED_ROW = True
 
     def __init__(self, segmentation: vtkMRMLSegmentationNode, sphereCount: int) -> None:
+        # # get the first 3D view’s VTK render window
+        # rv = slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow()
+        # # force the OpenGL context to be current here
+        # rv.MakeCurrent()
+        # # (re)initialize the GL context if you want
+        # #rv.OpenGLInitContext()
+
+        
+
+        # # clear any existing error
+        # # try to read the version string
+        # ver = glGetString(GL_VERSION)
+        # err = glGetError()
+
+        # if err == GL_NO_ERROR and ver:
+        #     print("In a valid GL context, version:", ver.decode())
+        # else:
+        #     print("No current GL context (or context invalid); glGetError() →", err)
+
         self.segmentation = segmentation
         self.texture = self.createTexture()
         self.sphereCount = sphereCount
@@ -98,6 +125,31 @@ class Mask:
         self.updateRowFromSegmentation(self.selectedSphereIndex)
         
     def updateRowFromSegmentation(self, rowIndex: int):
+
+        
+
+        # # get the first 3D view’s VTK render window
+        # rv = slicer.app.layoutManager().threeDWidget(0).threeDView().renderWindow()
+        # # force the OpenGL context to be current here
+        # rv.MakeCurrent()
+        # # (re)initialize the GL context if you want
+        # #rv.OpenGLInitContext()
+
+        # # clear any existing error
+        # err = glGetError()
+        # if err == GL_INVALID_VALUE:
+        #     print("Detected GL_INVALID_VALUE (1281); dumping Python stack:")
+        #     traceback.print_stack()
+        
+        # # try to read the version string
+        # ver = glGetString(GL_VERSION)
+        # err = glGetError()
+
+        # if err == GL_NO_ERROR and ver:
+        #     print("In a valid GL context, version:", ver.decode())
+        # else:
+        #     print("No current GL context (or context invalid); glGetError() →", err)
+
         # Get the currently selected segmentation node
         #segmentation = self.getParameterNode().segmentation  # Replace with your actual node name if needed
         
