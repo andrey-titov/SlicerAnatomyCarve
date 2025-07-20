@@ -102,7 +102,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         
     def changeSelctedPointIndex(self, newSelectedPointIndex):
         self.context.mask.selectSphere(newSelectedPointIndex)
-        self.context.mask.updateSelectedRowFromSegmentation()
+        #self.context.mask.updateSelectedRowFromSegmentation()
         
         sphereRadiusesList = list(self.sphereRadiuses)
         return self.sphereRadiuses[sphereRadiusesList[newSelectedPointIndex]]
