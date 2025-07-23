@@ -211,7 +211,7 @@ class Context:
         arr = arr.reshape(dims[0], dims[1], dims[2])
         # print("Multi-label shape:", arr.shape)
         
-        return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
+        return Texture.fromArray(arr.astype(np.uint16), GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, True)
     
 
     def getViewIndex(self) -> int:
