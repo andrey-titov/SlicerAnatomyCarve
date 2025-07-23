@@ -133,16 +133,23 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         
         return self.context.mask.selectedSphereIndex
 
-    def removeLastClippingSphere(self):
-        self.context.mask.removeSphere()
+    def removeClippingSphere(self):
+        n = self.clippingSpheresNode.GetNumberOfControlPoints()
+        updatedControlPoints = [self.clippingSpheresNode.GetNthControlPointID(i) for i in range(n)]
+        removedControlPointID = (set(self.sphereRadiuses) - set(updatedControlPoints)).pop()
+        removedControlPointIndex = updatedControlPoints.index(removedControlPointID) 
+        
+        #print(removedIndex)
+        
+        self.context.mask.removeSphere(removedControlPointIndex)
         
         sphereRadiusesList = list(self.sphereRadiuses)
         
         if len(sphereRadiusesList) == 0:
             return self.context.mask.selectedSphereIndex, None
         
-        lastIndex = len(sphereRadiusesList) - 1        
-        self.sphereRadiuses.pop(sphereRadiusesList[lastIndex])
+        #lastIndex = len(sphereRadiusesList) - 1        
+        self.sphereRadiuses.pop(removedControlPointID)
         
         if len(self.sphereRadiuses) == 0:
             return self.context.mask.selectedSphereIndex, None

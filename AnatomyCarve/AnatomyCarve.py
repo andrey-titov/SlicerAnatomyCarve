@@ -153,10 +153,83 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         self.ui.sphereRadius.connect('valueChanged(double)', self.onSphereRadiusValueChanged)
         
+        self.setupSelectedPointDeletion()
         #self.setupClippingSphereMarkups()
 
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
+        
+    def setupSelectedPointDeletion(self):
+        w = self.ui.clippingSpheres
+
+        for btn in w.findChildren(qt.QToolButton):
+            # toolTip is a str property, not a callable
+            tip = btn.toolTip
+            if not tip:
+                continue
+            if any(keyword in tip.lower() for keyword in (
+                    "delete", "remove", "unset", "move up", "move down")):
+                btn.hide()
+
+        # 2) Steal the table view (fallback from QTableView → QAbstractItemView)
+        tv = w.findChild(qt.QTableView)
+        if not tv:
+            tv = w.findChild(qt.QAbstractItemView)
+
+        # 3) Disable any reordering and context‑menu deletion…
+        if tv:
+            tv.setDragEnabled(False)
+            tv.setAcceptDrops(False)
+            tv.setDragDropMode(qt.QAbstractItemView.NoDragDrop)
+            tv.setContextMenuPolicy(qt.Qt.NoContextMenu)
+
+            # 4) …but keep normal click‑to‑select
+            tv.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+            tv.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        
+        w = self.ui.clippingSpheres
+        
+        table = w.findChild(qt.QTableWidget)        # or slicer.util.findChild(w, "ControlPointsTableWidget")
+
+        # Use a custom menu instead of the built‑in one
+        table.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        try:
+            table.customContextMenuRequested.disconnect()
+        except TypeError:
+            pass
+
+        def deleteSelected():
+            node = w.currentNode()
+            if not node:
+                return
+            
+            n = node.GetNumberOfControlPoints()
+            firstSelected = next((i for i in range(n) if node.GetNthControlPointSelected(i)), -1)
+            
+            print(firstSelected)
+            
+            node.RemoveNthControlPoint(firstSelected)
+            
+            # with slicer.util.NodeModify(node):
+            #     for i in range(node.GetNumberOfControlPoints()-1, -1, -1):
+            #         if node.GetNthControlPointSelected(i):
+            #             print(i)
+            #             node.RemoveNthControlPoint(i)
+            #             break
+
+        def showMenu(pos):
+            node = w.currentNode()
+            n = node.GetNumberOfControlPoints()
+            numSelectedPoints = sum(node.GetNthControlPointSelected(i) for i in range(n))
+            
+            if numSelectedPoints >= 1:
+                menu = qt.QMenu(table)
+                actDel = menu.addAction("Delete selected control point")
+                actDel.triggered.connect(deleteSelected)
+                # Add anything else you want (jump to point, rename, etc.)
+                menu.exec(table.viewport().mapToGlobal(pos))
+
+        table.customContextMenuRequested.connect(showMenu)
         
     def setupClippingSphereMarkups(self):
         # assume you loaded your UI into self.ui
@@ -195,32 +268,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         # table.setContextMenuPolicy(Qt.NoContextMenu)
         # table.viewport().setContextMenuPolicy(Qt.NoContextMenu)
         
-        w = self.ui.clippingSpheres
-
-        for btn in w.findChildren(qt.QToolButton):
-            # toolTip is a str property, not a callable
-            tip = btn.toolTip
-            if not tip:
-                continue
-            if any(keyword in tip.lower() for keyword in (
-                    "delete", "remove", "unset", "move up", "move down")):
-                btn.hide()
-
-        # 2) Steal the table view (fallback from QTableView → QAbstractItemView)
-        tv = w.findChild(qt.QTableView)
-        if not tv:
-            tv = w.findChild(qt.QAbstractItemView)
-
-        # 3) Disable any reordering and context‑menu deletion…
-        if tv:
-            tv.setDragEnabled(False)
-            tv.setAcceptDrops(False)
-            tv.setDragDropMode(qt.QAbstractItemView.NoDragDrop)
-            tv.setContextMenuPolicy(qt.Qt.NoContextMenu)
-
-            # 4) …but keep normal click‑to‑select
-            tv.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
-            tv.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+        
         
         self.ui.clippingSpheres.currentMarkupsControlPointSelectionChanged.connect(self.onPointSelected)
         
@@ -243,10 +291,12 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onPointRemovedEvent(self, caller, eventId, callData=None):
         # Clear error from event
         err = glGetError()
+        
+        print("onPointRemovedEvent")
 
         # n = caller.GetNumberOfControlPoints()
         # updatedPoints = [tuple(caller.GetNthControlPointPosition(i)) for i in range(n)]
-        selectedSphereIndex, previousSphereRadius = self.logic.removeLastClippingSphere()
+        selectedSphereIndex, previousSphereRadius = self.logic.removeClippingSphere()
         
         self.selectRow(selectedSphereIndex)
         

@@ -101,7 +101,7 @@ class Mask:
             visibility = rowMask[labelValue] == 1
             displayNode.SetSegmentVisibility(segmentID, visibility)
     
-    def removeSphere(self):
+    def removeSphere(self, removedControlPointIndex: int):
         if self.sphereCount <= 0:
             self.selectedSphereIndex = -1
             return
