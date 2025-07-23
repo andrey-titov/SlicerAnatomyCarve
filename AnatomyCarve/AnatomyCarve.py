@@ -153,10 +153,55 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         
         self.ui.sphereRadius.connect('valueChanged(double)', self.onSphereRadiusValueChanged)
         
+        self.setupDeleteButtonClippingSphereWidget()
         #self.setupClippingSphereMarkups()
 
         # Make sure parameter node is initialized (needed for module reload)
         self.initializeParameterNode()
+        
+    def setupDeleteButtonClippingSphereWidget(self):
+        w = self.ui.clippingSpheres   # or however you get your qSlicerSimpleMarkupsWidget
+
+        # 1. List every button so you see the real objectName/text/class
+        for b in w.findChildren(qt.QAbstractButton):
+            print(b.metaObject().className(), b.objectName, getattr(b, "text", None))
+
+        # 2. Pick the one whose text matches
+        def findButtonByText(root, wanted):
+            wanted = wanted.lower()
+            for b in root.findChildren(qt.QAbstractButton):
+                t = getattr(b, "name", "") or ""
+                if t.lower() == wanted:
+                    return b
+            return None
+
+        self.clippingSphereDeleteButton = findButtonByText(w, "DeleteButton")  # maybe it's "Delete last control point"
+        if self.clippingSphereDeleteButton is None:
+            raise RuntimeError("Couldn't find the delete-last-point button. Check the printed list above.")
+
+        # # 3. Retitle and rewire
+        # btn.setText("Delete selected")
+        # btn.setToolTip("Delete selected")
+
+        # # Disconnect all existing slots for clicked()
+        # try:
+        #     btn.clicked.disconnect()
+        # except TypeError:
+        #     pass  # nothing connected in Python layer
+
+        # def deleteSelected():
+        #     node = w.markupsNode()
+        #     if not node:
+        #         return
+        #     with slicer.util.NodeModify(node):
+        #         for i in range(node.GetNumberOfControlPoints()-1, -1, -1):
+        #             if node.GetNthControlPointSelected(i):
+        #                 node.RemoveNthControlPoint(i)
+                        
+        # btn.hide()
+        # newBtn = qt.QPushButton("Delete selected")
+        # w.layout().addWidget(newBtn)
+        # newBtn.setToolTip("Delete selected")
         
     def setupClippingSphereMarkups(self):
         # assume you loaded your UI into self.ui
@@ -294,6 +339,7 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         # 4) highlight that entire row
         tv.selectRow(row)
+        self.clippingSphereDeleteButton.setEnabled(row - 1 == tv.model().rowCount())
 
         # 5) optionally move keyboard focus/current index there
         idx = tv.model().index(row, 0)
