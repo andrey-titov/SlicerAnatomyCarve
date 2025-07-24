@@ -25,6 +25,18 @@ from slicer import vtkMRMLScalarVolumeNode
 #         glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, *dims, GL_RED, GL_FLOAT, array.ravel())
 
 class Texture:
+    
+    MAP_GL_TYPE_TO_NUMPY = {
+        GL_UNSIGNED_BYTE: np.uint8,
+        GL_BYTE: np.int8,
+        GL_UNSIGNED_SHORT: np.uint16,
+        GL_SHORT: np.int16,
+        GL_UNSIGNED_INT: np.uint32,
+        GL_INT: np.int32,
+        GL_HALF_FLOAT: np.float16,
+        GL_FLOAT: np.float32,
+        }
+    
     # Initialize from existing OpenGL texture
     @classmethod
     def fromOpenGLTexture(cls, textureId: int, dims: tuple[int, int, int], internalformat: int, format: int, type: int):
@@ -38,14 +50,19 @@ class Texture:
 
     # Initialize from existing volume node
     @classmethod
-    def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int):
+    def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int, scale: float):
+        DEFAULT_TYPE = np.float32
+        
         t = cls()
-        data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(np.float32)
+        data = slicer.util.arrayFromVolume(scalarVolumeNode).astype(DEFAULT_TYPE)
         data = data.reshape(data.shape[::-1])
         min = data.min()
         max = data.max()
         data = (data - min) / (max - min)
-        # data = 
+        if scale != 1.0:
+            data = data * scale
+        if Texture.MAP_GL_TYPE_TO_NUMPY[type] != DEFAULT_TYPE:
+            data = data.astype(Texture.MAP_GL_TYPE_TO_NUMPY[type])
         t.uploadData(data, internalformat, format, type, True)
         return t
 
@@ -126,7 +143,7 @@ class Texture:
         # )
 
         # 4. Convert to a NumPy array and reshape: (height, width, 4)
-        image = np.frombuffer(rawData, dtype=np.int32)
+        image = np.frombuffer(rawData, dtype=Texture.MAP_GL_TYPE_TO_NUMPY[self.type])
         image = image.reshape((self.dims[1], self.dims[0]))
 
         # 5. (Optional) Flip vertically if you want row‑0 at the top

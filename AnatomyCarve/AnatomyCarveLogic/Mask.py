@@ -56,7 +56,7 @@ class Mask:
             segmentation.GetSegment(segID).GetLabelValue() # vtkSegment::GetLabelValue 
             for segID in segmentIDs
         )
-        return Texture.fromArray(np.ones((maxLabel + 1, self.MAX_SPHERES), dtype=np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
+        return Texture.fromArray(np.ones((maxLabel + 1, self.MAX_SPHERES), dtype=np.int32), GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, True)
     
     def addSphere(self):
         self.sphereCount += 1
