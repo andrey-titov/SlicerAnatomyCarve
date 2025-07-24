@@ -423,7 +423,9 @@ class AnatomyCarveWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def onRenderButton(self) -> None:
         """Run processing when user clicks "Render" button."""
-        with slicer.util.tryWithErrorDisplay(_("Failed to start rendering."), waitCursor=True):
+        err = glGetError()
+
+        with slicer.util.tryWithErrorDisplay(_("Failed to start rendering."), waitCursor=True):            
             self.setupClippingSphereMarkups()
             self.logic.startRender(self.clippingSpheresNode)
             self._checkCanRender()
