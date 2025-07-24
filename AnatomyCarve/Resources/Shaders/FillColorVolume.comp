@@ -30,20 +30,6 @@ void main() {
     // load the label (uvec4.x holds our label)
     uint label = imageLoad(labelMap, coord).x;
     
-    // // map label → [0,1] lookup coordinate, with 0.5/sample-center offset
-    // float u = (float(label) + 0.5) / float(colorMapSize);
-    // vec2 uv = vec2(u, 0.5); 
-    
-    // fetch the colour
-    
-
-    // if (label == 0)
-    // {
-    //     color.a = 0;
-    // }
-    
-    // write to the output volume
-    
     // label is not zero - we just copy the color and the label dirtectly
     if (label != 0)
     {
@@ -82,6 +68,7 @@ void main() {
         }
     }
 
+    // Calculate median label among those in the surrounding region
     uint bestLabel = 0u;
     uint bestCount = 0u;
     for (int j = 0; j < n; ++j) {
