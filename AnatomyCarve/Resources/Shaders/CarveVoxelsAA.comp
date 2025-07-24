@@ -1,7 +1,7 @@
 #version 430
 
 #define MAX_SPHERES 32
-#define SAMPLES_COUNT 16
+#define SAMPLES_COUNT 5
 
 // work‐group size; tune to your GPU and volume size
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
@@ -27,25 +27,47 @@ layout(binding = 3, r8ui) uniform readonly uimage2D mask;
 
 layout(binding = 4, rgba8) uniform readonly image3D colorVolume;
 
-// 16 random points in [-1,1]^3
+// 5 opposing corners of the [-1,1]^3 cube, plus the center
 const vec3 SAMPLE_POINTS[SAMPLES_COUNT] = vec3[SAMPLES_COUNT](
-    vec3( 0.6888,  0.5159, -0.1589),
-    vec3(-0.4822,  0.0225, -0.1901),
-    vec3( 0.5676, -0.3934, -0.0468),
-    vec3( 0.1668,  0.8162,  0.0094),
-    vec3(-0.4363,  0.5116,  0.2367),
-    vec3(-0.4990,  0.8195,  0.9656),
-    vec3( 0.6204,  0.8043, -0.3797),
-    vec3( 0.4597,  0.7977,  0.3680),
-    vec3(-0.0557, -0.7986, -0.1317),
-    vec3( 0.2218,  0.8260,  0.9332),
-    vec3(-0.0460,  0.7306, -0.4790),
-    vec3( 0.6101,  0.0974, -0.9719),
-    vec3( 0.4394, -0.2024,  0.6497),
-    vec3( 0.3363, -0.9977, -0.0128),
-    vec3( 0.7352, -0.5122, -0.3496),
-    vec3( 0.7409, -0.6179,  0.1350)
+    vec3( 0.0,  0.0,  0.0),  // center
+    vec3(-1.0, -1.0, -1.0),
+    vec3( 1.0,  1.0, -1.0),
+    vec3( 1.0, -1.0,  1.0),
+    vec3(-1.0,  1.0,  1.0)
 );
+
+// // 8 corners of the [-1,1]^3 cube, plus the center
+// const vec3 SAMPLE_POINTS[SAMPLES_COUNT] = vec3[SAMPLES_COUNT](
+//     vec3(-1.0, -1.0, -1.0),
+//     vec3(-1.0, -1.0,  1.0),
+//     vec3(-1.0,  1.0, -1.0),
+//     vec3(-1.0,  1.0,  1.0),
+//     vec3( 1.0, -1.0, -1.0),
+//     vec3( 1.0, -1.0,  1.0),
+//     vec3( 1.0,  1.0, -1.0),
+//     vec3( 1.0,  1.0,  1.0),
+//     vec3( 0.0,  0.0,  0.0)  // center
+// );
+
+// // 16 random points in [-1,1]^3
+// const vec3 SAMPLE_POINTS[SAMPLES_COUNT] = vec3[SAMPLES_COUNT](
+//     vec3( 0.6888,  0.5159, -0.1589),
+//     vec3(-0.4822,  0.0225, -0.1901),
+//     vec3( 0.5676, -0.3934, -0.0468),
+//     vec3( 0.1668,  0.8162,  0.0094),
+//     vec3(-0.4363,  0.5116,  0.2367),
+//     vec3(-0.4990,  0.8195,  0.9656),
+//     vec3( 0.6204,  0.8043, -0.3797),
+//     vec3( 0.4597,  0.7977,  0.3680),
+//     vec3(-0.0557, -0.7986, -0.1317),
+//     vec3( 0.2218,  0.8260,  0.9332),
+//     vec3(-0.0460,  0.7306, -0.4790),
+//     vec3( 0.6101,  0.0974, -0.9719),
+//     vec3( 0.4394, -0.2024,  0.6497),
+//     vec3( 0.3363, -0.9977, -0.0128),
+//     vec3( 0.7352, -0.5122, -0.3496),
+//     vec3( 0.7409, -0.6179,  0.1350)
+// );
 
 // const vec3 SAMPLE_POINTS[SAMPLES_COUNT] = vec3[SAMPLES_COUNT](
 //     vec3( 0.6888,  0.5159, -0.1589),
