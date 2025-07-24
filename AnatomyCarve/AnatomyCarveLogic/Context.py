@@ -28,7 +28,7 @@ class Context:
         self.labelToColorMapTex2d = self.createLabelToColorMap()        
         self.outputVolume, self.outputVolumeTex3d = self.createVectorVolume()
         self.labelVolumeTex3d = self.createLabelVolume()
-        self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT, 1.0)
+        self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT)
         self.mask = Mask(segmentation, 0)
         self.labelToColorVolumeTex3d = Texture.fromArray(np.zeros(self.outputVolumeTex3d.dims + (self.COLOR_NUM_COMPONENTS,), dtype=np.uint8), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
 
@@ -211,7 +211,7 @@ class Context:
         arr = arr.reshape(dims[0], dims[1], dims[2])
         # print("Multi-label shape:", arr.shape)
         
-        return Texture.fromArray(arr.astype(np.uint16), GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT, True)
+        return Texture.fromArray(arr.astype(np.int32), GL_R32I, GL_RED_INTEGER, GL_INT, True)
     
 
     def getViewIndex(self) -> int:
