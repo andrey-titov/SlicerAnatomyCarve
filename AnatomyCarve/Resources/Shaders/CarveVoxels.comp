@@ -16,7 +16,7 @@ uniform mat4 modelMatrix;
 layout(binding = 0, rgba32f) uniform writeonly image3D outputVolume;
 
 // binding 1: input label map (unsigned integer 3D image)
-layout(binding = 1, r32i) uniform readonly iimage3D labelMap;
+layout(binding = 1, r16ui) uniform readonly uimage3D labelMap;
 
 // binding 2: 
 layout(binding = 2, r16) uniform readonly image3D intensityVolume;
@@ -37,7 +37,7 @@ void main() {
     }
 
     // load the label (uvec4.x holds our label)
-    int label = imageLoad(labelMap, coord).x;
+    uint label = imageLoad(labelMap, coord).x;
 
     if (label == 0)
     {
