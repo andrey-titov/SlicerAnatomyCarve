@@ -22,7 +22,7 @@ layout(binding = 1, r16ui) uniform readonly uimage3D labelMap;
 layout(binding = 2, r16) uniform readonly image3D intensityVolume;
 
 // Array of in values where 0 is false and 1 is true that dictates whether or not the label is visible
-layout(binding = 3, r32i) uniform readonly iimage2D mask;
+layout(binding = 3, r8ui) uniform readonly uimage2D mask;
 
 layout(binding = 4, rgba8) uniform readonly image3D colorVolume;
 
@@ -49,9 +49,9 @@ void main() {
     vec3 pos = (threeDPoint / threeDPoint.w).xyz;
 
     bool clipped = false;
-    for (int i = 0; i < sphereCount; ++i) 
+    for (uint i = 0; i < sphereCount; ++i) 
     {
-        int maskValue = imageLoad(mask, ivec2(label, i)).r;
+        uint maskValue = imageLoad(mask, ivec2(label, i)).r;
         bool segmentIsCarved = (maskValue == 0);
 
         // Clipped for current sphere if the point is inside the sphere
