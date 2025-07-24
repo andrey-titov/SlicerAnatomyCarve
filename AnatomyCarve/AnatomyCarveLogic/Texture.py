@@ -48,7 +48,7 @@ class Texture:
         t.type = type
         return t
 
-    # Initialize from existing volume node
+    # Initialize from existing volume node 
     @classmethod
     def fromVolumeNode(cls, scalarVolumeNode: vtkMRMLScalarVolumeNode, internalformat: int, format: int, type: int, scale: float):
         DEFAULT_TYPE = np.float32
