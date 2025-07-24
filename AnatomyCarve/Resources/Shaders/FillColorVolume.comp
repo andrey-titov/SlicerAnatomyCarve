@@ -12,6 +12,9 @@ layout(binding = 1, rgba8) uniform readonly image2D colorMap;
 // binding 2: output coloured volume (8-bit RGBA image)
 layout(binding = 2, rgba8) uniform writeonly image3D colorVolume;
 
+// binding 3: dilated label map (unsigned integer 3D image)
+layout(binding = 3, r16ui) uniform writeonly uimage3D labelMapDilated;
+
 // how many entries in the colour map
 uniform int colorMapSize; 
 
@@ -32,7 +35,7 @@ void main() {
     // vec2 uv = vec2(u, 0.5); 
     
     // fetch the colour
-    vec4 color = imageLoad(colorMap, ivec2(label,0));
+    
 
     // if (label == 0)
     // {
@@ -40,5 +43,55 @@ void main() {
     // }
     
     // write to the output volume
+    
+    // label is not zero - we just copy the color and the label dirtectly
+    if (label != 0)
+    {
+        vec4 color = imageLoad(colorMap, ivec2(label,0));
+        imageStore(colorVolume, coord, color);
+        imageStore(labelMapDilated, coord, uvec4(label, 0, 0, 0));
+        return;
+    }
+
+     // We only look at 27 voxels, so we can brute-force a tiny "histogram".
+    const int MAXN = 27;
+    uint labels[MAXN];
+    uint counts[MAXN];
+    int n = 0;
+    for (int i = 0; i < MAXN; ++i) { counts[i] = 0u; }
+
+    for (int dz = -1; dz <= 1; ++dz)
+    for (int dy = -1; dy <= 1; ++dy)
+    for (int dx = -1; dx <= 1; ++dx) {
+        ivec3 p = clamp(coord + ivec3(dx, dy, dz), ivec3(0), dimensions - 1);
+        uint v = imageLoad(labelMap, p).r;
+        if (v == 0u) continue;
+
+        bool found = false;
+        for (int j = 0; j < n; ++j) {
+            if (labels[j] == v) {
+                counts[j]++;
+                found = true;
+                break;
+            }
+        }
+        if (!found && n < MAXN) {
+            labels[n] = v;
+            counts[n] = 1u;
+            n++;
+        }
+    }
+
+    uint bestLabel = 0u;
+    uint bestCount = 0u;
+    for (int j = 0; j < n; ++j) {
+        if (counts[j] > bestCount) {
+            bestCount = counts[j];
+            bestLabel = labels[j];
+        }
+    }
+
+    imageStore(labelMapDilated, coord, uvec4(bestLabel, 0, 0, 0));
+    vec4 color = imageLoad(colorMap, ivec2(bestLabel,0));
     imageStore(colorVolume, coord, color);
 }
