@@ -16,9 +16,10 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/Icons/Panoramix-cropped-segmentation.png
   Resources/UI/${MODULE_NAME}.ui
-  Resources/Shaders/FillColorVolume.comp
   Resources/Shaders/Noise.comp
+  Resources/Shaders/FillColorVolume.comp  
   Resources/Shaders/CarveVoxels.comp
+  Resources/Shaders/CarveVoxelsAA.comp
   )
 
 #-----------------------------------------------------------------------------

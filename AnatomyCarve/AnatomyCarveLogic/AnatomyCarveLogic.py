@@ -47,7 +47,7 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         """Called when the logic class is instantiated. Can be used for initializing member variables."""
         ScriptedLoadableModuleLogic.__init__(self)
         self.shaderFillColorVolume = ComputeShader("FillColorVolume.comp")
-        self.shaderCarveVoxels = ComputeShader("CarveVoxels.comp")
+        self.shaderCarveVoxels = ComputeShader("CarveVoxelsAA.comp")
 
     def getParameterNode(self):
         return AnatomyCarveParameterNode(super().getParameterNode())
