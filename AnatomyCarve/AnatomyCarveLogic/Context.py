@@ -28,7 +28,7 @@ class Context:
         self.labelToColorMapTex2d = self.createLabelToColorMap()        
         self.outputVolume, self.outputVolumeTex3d = self.createVectorVolume()
         self.labelVolumeTex3d = self.createLabelVolume()
-        self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R16, GL_RED, GL_UNSIGNED_SHORT, 65535)
+        self.intensityVolumeTex3d = Texture.fromVolumeNode(intensityVolume, GL_R32F, GL_RED, GL_FLOAT, 1.0)
         self.mask = Mask(segmentation, 0)
         self.labelToColorVolumeTex3d = Texture.fromArray(np.zeros(self.outputVolumeTex3d.dims + (self.COLOR_NUM_COMPONENTS,), dtype=np.uint8), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, False)
 
