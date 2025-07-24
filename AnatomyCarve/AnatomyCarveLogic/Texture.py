@@ -61,7 +61,7 @@ class Texture:
         data = (data - min) / (max - min)
         if scale != 1.0:
             data = data * scale
-        if DEFAULT_TYPE == Texture.MAP_GL_TYPE_TO_NUMPY[type]:
+        if Texture.MAP_GL_TYPE_TO_NUMPY[type] != DEFAULT_TYPE:
             data = data.astype(Texture.MAP_GL_TYPE_TO_NUMPY[type])
         t.uploadData(data, internalformat, format, type, True)
         return t
