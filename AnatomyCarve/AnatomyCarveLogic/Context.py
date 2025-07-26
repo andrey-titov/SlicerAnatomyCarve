@@ -158,7 +158,7 @@ class Context:
         #vp.ShadeOff()                                 # equivalent to SetShade(0)
         #vpNode.Modified()                             # notify the MRML node of the change
         
-        viewIndex = self.getViewIndex()
+        #viewIndex = self.getViewIndex()
 
         # if viewIndex is not None:
         #     print(f"ViewNode {viewNode.GetName()} has index {viewIndex}")
