@@ -165,13 +165,24 @@ class Context:
         # else:
         #     print("ViewNode is not currently in any visible 3D view.")
         
-        textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(outputVolume, viewIndex)
-        self.visibleTextureId = textureId
+        textureId = -1 
+        #textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(outputVolume, viewIndex)
+        
+        #self.visibleTextureId = textureId
         #self.rgbaVolume = rgbaVolume
 
         #print(textureId)
         return outputVolume, Texture.fromOpenGLTexture(textureId, self.intensityVolume.GetImageData().GetDimensions(), GL_RGBA32F, GL_RGB, GL_FLOAT)
     
+    def updateOutputVolumeTextureId(self):
+        if glIsTexture(self.outputVolumeTex3d.textureId) == GL_TRUE:
+            return
+        
+        viewIndex = self.getViewIndex()
+        self.outputVolumeTex3d.textureId = slicer.modules.volumetextureidhelper.logic().GetTextureIdForVolume(self.outputVolume, viewIndex)
+        #print(self.outputVolumeTex3d.textureId)
+
+
     def createLabelVolume(self) -> Texture:
         # # 1. Get your segmentation node (by name, or just grab the first one)
         # segNode = self.logic.getParameterNode().segmentation  # replace with your node’s actual name

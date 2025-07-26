@@ -305,6 +305,8 @@ class AnatomyCarveLogic(ScriptedLoadableModuleLogic):
         # Clear error from event
         err = glGetError()
 
+        self.context.updateOutputVolumeTextureId()
+
         shader = self.shaderCarveVoxels
 
         modelMatrix = vtk.vtkMatrix4x4()
