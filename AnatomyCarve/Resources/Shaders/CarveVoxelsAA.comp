@@ -108,6 +108,7 @@ const vec3 SAMPLE_POINTS[SAMPLES_COUNT] = vec3[SAMPLES_COUNT](
 void main() {
     ivec3 dimensions = imageSize(outputVolume);
     ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
+    vec3 coordf = vec3(coord);
 
     if (coord.x >= dimensions.x || coord.y >= dimensions.y || coord.z >= dimensions.z)
     {
@@ -132,14 +133,14 @@ void main() {
     }
 
     // For every sample, we calculate if it is clipped by at least one sphere, and then we aggregate the results
-    int visibleSamples = 0;
-    for (int s = 0; s < SAMPLES_COUNT; ++s) 
+    uint visibleSamples = 0;
+    for (uint s = 0; s < SAMPLES_COUNT; ++s) 
     {
         bool clipped = false;
-        for (uint i = 0; i < sphereCount; ++i) 
+        for (uint i = 0; i < sphereCount && !clipped; ++i) 
         {
             // Clipped for current sphere if the point is inside the sphere
-            vec4 threeDPoint = modelMatrix * vec4(vec3(gl_GlobalInvocationID.xyz) + SAMPLE_POINTS[s], 1.0);
+            vec4 threeDPoint = modelMatrix * vec4(coordf + SAMPLE_POINTS[s], 1.0);
             vec3 pos = (threeDPoint / threeDPoint.w).xyz;
             bool pointInsideSphere = length(pos - sphereDetails[i].xyz) < sphereDetails[i].w;
             bool voxelIsCarved = segmentIsCarved[i] && pointInsideSphere;
